@@ -1,0 +1,105 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Databases/Monsters/MinionData.gd" type="Script" id=1]
+[ext_resource path="res://Characters/Goblin/Goblin.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Characters/Spider/Spider.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Characters/Slime/Slime.tscn" type="PackedScene" id=4]
+
+[node name="Minions" type="Node"]
+
+[node name="Goblin" type="Node" parent="." index="0"]
+
+script = ExtResource( 1 )
+type = ExtResource( 2 )
+description = "An evil goblin"
+max_life = 15
+damage = 5
+defense = 0
+ai_type = 1
+learning_activated = false
+learning_rate = 0.0
+discount = 0.0
+max_exploration_rate = 1.0
+min_exploration_rate = 0.3
+exploration_rate_decay_time = 0.0
+experience_replay = false
+experience_pool_size = 40
+think_time = 0.2
+
+[node name="GoblinP" type="Node" parent="." index="1"]
+
+script = ExtResource( 1 )
+type = ExtResource( 2 )
+description = "An evil goblin"
+max_life = 15
+damage = 5
+defense = 0
+ai_type = 0
+learning_activated = false
+learning_rate = 0.0
+discount = 0.0
+max_exploration_rate = 1.0
+min_exploration_rate = 0.3
+exploration_rate_decay_time = 0.0
+experience_replay = false
+experience_pool_size = 40
+think_time = 0.2
+
+[node name="Spider" type="Node" parent="." index="2"]
+
+script = ExtResource( 1 )
+type = ExtResource( 3 )
+description = "A huge spider"
+max_life = 15
+damage = 5
+defense = 0
+ai_type = 1
+learning_activated = false
+learning_rate = 0.0
+discount = 0.0
+max_exploration_rate = 1.0
+min_exploration_rate = 0.3
+exploration_rate_decay_time = 0.0
+experience_replay = false
+experience_pool_size = 40
+think_time = 0.2
+
+[node name="SpiderP" type="Node" parent="." index="3"]
+
+script = ExtResource( 1 )
+type = ExtResource( 3 )
+description = "A huge spider"
+max_life = 15
+damage = 5
+defense = 0
+ai_type = 0
+learning_activated = false
+learning_rate = 0.0
+discount = 0.0
+max_exploration_rate = 1.0
+min_exploration_rate = 0.3
+exploration_rate_decay_time = 0.0
+experience_replay = false
+experience_pool_size = 40
+think_time = 0.2
+
+[node name="Slime" type="Node" parent="." index="4"]
+
+script = ExtResource( 1 )
+type = ExtResource( 4 )
+description = "A huge ball of... slime? I wonder what it's made of"
+max_life = 15
+damage = 5
+defense = 0
+ai_type = 1
+learning_activated = false
+learning_rate = 0.0
+discount = 0.0
+max_exploration_rate = 1.0
+min_exploration_rate = 0.3
+exploration_rate_decay_time = 0.0
+experience_replay = false
+experience_pool_size = 40
+think_time = 0.2
+
+

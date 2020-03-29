@@ -1,0 +1,353 @@
+[gd_scene load_steps=19 format=2]
+
+[ext_resource path="res://Characters/CharacterBase.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Characters/Goblin/Goblin.gd" type="Script" id=2]
+[ext_resource path="res://assets/images/characters/goblin.png" type="Texture" id=3]
+
+[sub_resource type="Shader" id=1]
+
+code = "shader_type canvas_item;
+
+uniform bool active = false;
+
+void fragment() {
+	vec4 self_color = texture(TEXTURE, UV);
+	if (active)
+		COLOR = vec4(1.0, 1.0, 1.0, self_color.a);
+	else
+		COLOR = self_color;
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+
+resource_local_to_scene = true
+render_priority = 0
+shader = SubResource( 1 )
+shader_param/active = null
+_sections_unfolded = [ "shader_param" ]
+
+[sub_resource type="Animation" id=3]
+
+length = 0.4
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 28, 29, 30, 31, 0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("../AttackArea/AttackAreaPolygon:polygon")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ PoolVector2Array( 0, 0 ), PoolVector2Array( -14, -2, -4, -2, -4, 4, -6, 12, -12, 12, -14, 2 ), PoolVector2Array( -14, -4, -4, -4, -4, 4, -6, 12, -12, 12, -14, 2 ), PoolVector2Array( 0, 0 ), PoolVector2Array( 0, 0 ) ]
+}
+
+[sub_resource type="Animation" id=4]
+
+length = 0.4
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 49, 50, 51, 52, 21 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("../AttackArea/AttackAreaPolygon:polygon")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ PoolVector2Array( 0, 0 ), PoolVector2Array( -20, -28, -26, -30, -40, -30, -40, -22, -28, -18, -20, -18 ), PoolVector2Array( -16, -24, -20, -26, -34, -26, -34, -20, -24, -16, -16, -16 ), PoolVector2Array( 0, 0 ), PoolVector2Array( 0, 0 ) ]
+}
+
+[sub_resource type="Animation" id=5]
+
+length = 0.4
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 35, 36, 37, 38, 7 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("../AttackArea/AttackAreaPolygon:polygon")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ PoolVector2Array( 0, 0 ), PoolVector2Array( 20, -28, 26, -30, 40, -30, 40, -22, 28, -18, 20, -18 ), PoolVector2Array( 16, -24, 20, -26, 34, -26, 34, -20, 24, -16, 16, -16 ), PoolVector2Array( 0, 0 ), PoolVector2Array( 0, 0 ) ]
+}
+
+[sub_resource type="Animation" id=6]
+
+length = 0.4
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 42, 43, 44, 45, 14 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("../AttackArea/AttackAreaPolygon:polygon")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ PoolVector2Array( 0, 0 ), PoolVector2Array( 6, -42, 16, -42, 16, -50, 14, -58, 8, -58, 6, -50 ), PoolVector2Array( 6, -40, 16, -40, 16, -48, 14, -56, 8, -56, 6, -48 ), PoolVector2Array( 0, 0 ), PoolVector2Array( 0, 0 ) ]
+}
+
+[sub_resource type="Animation" id=7]
+
+length = 0.7
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 56, 57, 58, 59, 60 ]
+}
+
+[sub_resource type="Animation" id=8]
+
+length = 0.1
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 0 ]
+}
+
+[sub_resource type="Animation" id=9]
+
+length = 0.1
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 21 ]
+}
+
+[sub_resource type="Animation" id=10]
+
+length = 0.1
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 7 ]
+}
+
+[sub_resource type="Animation" id=11]
+
+length = 0.1
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 14 ]
+}
+
+[sub_resource type="Animation" id=12]
+
+length = 0.7
+loop = true
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3, 4, 5, 6 ]
+}
+
+[sub_resource type="Animation" id=13]
+
+length = 0.7
+loop = true
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 21, 22, 23, 24, 25, 26, 27 ]
+}
+
+[sub_resource type="Animation" id=14]
+
+length = 0.7
+loop = true
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 7, 8, 9, 10, 11, 12, 13 ]
+}
+
+[sub_resource type="Animation" id=15]
+
+length = 0.7
+loop = true
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 14, 15, 16, 17, 18, 19, 20 ]
+}
+
+[node name="Goblin" instance=ExtResource( 1 )]
+
+script = ExtResource( 2 )
+max_life = 30
+damage = 10
+controller_type = 1
+ai_type = 1
+learning_rate = 0.0005
+discount = 0.999
+min_exploration_rate = 0.1
+exploration_rate_decay_time = 40.0
+experience_replay = true
+
+[node name="Sprite" parent="." index="1"]
+
+material = SubResource( 2 )
+position = Vector2( 0, -20 )
+texture = ExtResource( 3 )
+vframes = 9
+hframes = 7
+
+[node name="AnimationPlayer" parent="Sprite" index="0"]
+
+autoplay = "idle_down"
+anims/attack_down = SubResource( 3 )
+anims/attack_left = SubResource( 4 )
+anims/attack_right = SubResource( 5 )
+anims/attack_up = SubResource( 6 )
+anims/death = SubResource( 7 )
+anims/idle_down = SubResource( 8 )
+anims/idle_left = SubResource( 9 )
+anims/idle_right = SubResource( 10 )
+anims/idle_up = SubResource( 11 )
+anims/walk_down = SubResource( 12 )
+anims/walk_left = SubResource( 13 )
+anims/walk_right = SubResource( 14 )
+anims/walk_up = SubResource( 15 )
+
+[node name="HitBoxPolygon" parent="HitBox" index="0"]
+
+polygon = PoolVector2Array( -16, -38, 16, -38, 16, -2, -16, -2 )
+
+

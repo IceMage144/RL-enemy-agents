@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Databases/Monsters/MonsterDatabase.gd" type="Script" id=1]
+[ext_resource path="res://Databases/Monsters/Minions.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Databases/Monsters/Elites.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Databases/Monsters/Bosses.tscn" type="PackedScene" id=4]
+
+[node name="MonsterDatabase" type="Node"]
+
+script = ExtResource( 1 )
+
+[node name="Minion" parent="." index="0" instance=ExtResource( 2 )]
+
+[node name="Elite" parent="." index="1" instance=ExtResource( 3 )]
+
+[node name="Boss" parent="." index="2" instance=ExtResource( 4 )]
+
+
+[editable path="Minion"]
+[editable path="Elite"]
+[editable path="Boss"]

@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://UI/Popups/PopupBase.tscn" type="PackedScene" id=1]
+[ext_resource path="res://UI/Menus/PauseMenu.gd" type="Script" id=2]
+[ext_resource path="res://UI/Elements/BigBorderlessButton.tscn" type="PackedScene" id=3]
+
+[node name="PauseMenu" instance=ExtResource( 1 )]
+
+script = ExtResource( 2 )
+
+[node name="SaveArch" parent="Content" index="0" instance=ExtResource( 3 )]
+
+margin_left = 446.0
+margin_top = 322.0
+margin_right = 638.0
+margin_bottom = 364.0
+text = "Save arch"
+
+[connection signal="pressed" from="Content/SaveArch" to="." method="_on_SaveArch_pressed"]
+
+

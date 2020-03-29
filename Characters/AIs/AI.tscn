@@ -1,0 +1,7 @@
+[gd_scene format=2]
+
+[node name="PyAI" type="Node" groups=[
+"has_arch",
+]]
+
+

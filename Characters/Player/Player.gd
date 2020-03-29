@@ -1,0 +1,1 @@
+extends "res://Characters/Human/Human.gd"
