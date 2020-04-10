@@ -142,7 +142,7 @@ func _physics_process(delta):
 func is_ai():
 	return self.controller_type == Controller.AI
 
-func get_pretty_name():
+func get_full_name():
 	return self.name + " (" + self.controller_name + ")"
 
 func set_max_life(new_max_life):
@@ -196,6 +196,9 @@ func is_process_action(action):
 func die():
 	self.end()
 	self.emit_signal("character_death")
+
+func is_dead():
+	return Action.get_movement(self.action) == Action.DEATH
 
 func get_knocked_back(other):
 	var dir = (self.position - other.position).normalized()
