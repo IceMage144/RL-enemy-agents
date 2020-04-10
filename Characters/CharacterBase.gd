@@ -2,18 +2,21 @@ extends KinematicBody2D
 
 const PlayerController = preload("res://Characters/Player/PlayerController.gd")
 const ControllerNode = preload("res://Characters/Controller.tscn")
+
 const ActionClass = preload("res://Characters/ActionBase.gd")
+const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
+const AIType = AIEnums.AIType
 
 signal character_death
 
 enum Controller { PLAYER, AI }
-enum AIType { PERCEPTRON, SINGLE, MEMORY, MULTI }
 
 const KNOCKBACK_INITIAL_SPEED = 800
 const KNOCKBACK_DECAY_RATE = 0.6
 const KNOCKBACK_MIN = Vector2(20, 20)
 
-const ai_name = ["Perceptron", "Single", "Memory", "Multi"]
+const ai_name = ["Perceptron QL", "Single QL", "Memory QL",
+				 "Multi QL", "Basic BT"]
 
 export(int) var speed = 120
 export(float) var weight = 1
@@ -21,7 +24,7 @@ export(int) var max_life = 3
 export(int) var damage = 1
 export(int) var defense = 0
 export(Controller) var controller_type = Controller.PLAYER
-export(AIType) var ai_type = AIType.PERCEPTRON
+export(AIType) var ai_type = AIType.PERCEPTRON_QL
 export(bool) var learning_activated = true
 export(float, 0.0, 1.0, 0.0001) var learning_rate = 0.0
 export(float, 0.0, 1.0, 0.001) var discount = 0.0

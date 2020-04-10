@@ -24,7 +24,7 @@ GameConfig="*res://GameConfig.gd"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "brain-lib" )
+enabled=PoolStringArray( "brain-lib", "godot-behavior-tree-plugin" )
 
 [gdnative]
 

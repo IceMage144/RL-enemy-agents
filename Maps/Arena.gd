@@ -8,7 +8,7 @@ var alive_characters
 
 var tile_size = 32
 var rounds = 0
-var last_round = 3
+var last_round = 11
 var scores = {}
 
 onready var arena_width = 27 * self.tile_size
@@ -78,7 +78,7 @@ func _rand_pos():
 	return Vector2(xPos, yPos)
 
 func _leader_compare(char1, char2):
-	return self.score[char1.name] < self.score[char2.name]
+	return self.scores[char1.name] < self.scores[char2.name]
 
 func _get_winner():
 	var characters = self.get_tree().get_nodes_in_group("character")

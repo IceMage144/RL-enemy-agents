@@ -4,21 +4,24 @@ const AINode = preload("res://Characters/AIs/AI.tscn")
 const ActionClass = preload("res://Characters/ActionBase.gd")
 const Logger = preload("res://Logger.gd")
 
-enum Feature { ENEMY_DIST, SELF_LIFE, ENEMY_LIFE, ENEMY_ATTACKING, ENEMY_DIR_X, ENEMY_DIR_Y, BIAS, FEATURES_SIZE }
-enum AiType { PERCEPTRON, SINGLE, MEMORY, MULTI }
+const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
+const AIType = AIEnums.AIType
+const Feature = AIEnums.QLFeature
 
 const ai_path = {
-	AiType.PERCEPTRON: "res://Characters/AIs/PerceptronQLAI.gd",
-	AiType.SINGLE: "res://Characters/AIs/SingleQLAI.gd",
-	AiType.MEMORY: "res://Characters/AIs/MemoryQLAI.gd",
-	AiType.MULTI: "res://Characters/AIs/MultiQLAI.gd"
+	AIType.PERCEPTRON_QL: "res://Characters/AIs/PerceptronQLAI.gd",
+	AIType.SINGLE_QL: "res://Characters/AIs/SingleQLAI.gd",
+	AIType.MEMORY_QL: "res://Characters/AIs/MemoryQLAI.gd",
+	AIType.MULTI_QL: "res://Characters/AIs/MultiQLAI.gd",
+	AIType.BASIC_BT: "res://Characters/AIs/BasicBTAI.gd"
 }
 
 const ai_color = {
-	AiType.PERCEPTRON: Color(0.2, 1.0, 0.2, 1.0),
-	AiType.SINGLE: Color(1.0, 0.2, 0.2, 1.0),
-	AiType.MEMORY: Color(0.2, 0.2, 1.0, 1.0),
-	AiType.MULTI: Color(0.0, 1.0, 1.0, 1.0)
+	AIType.PERCEPTRON_QL: Color(0.2, 1.0, 0.2, 1.0),
+	AIType.SINGLE_QL: Color(1.0, 0.2, 0.2, 1.0),
+	AIType.MEMORY_QL: Color(0.2, 0.2, 1.0, 1.0),
+	AIType.MULTI_QL: Color(0.0, 1.0, 1.0, 1.0),
+	AIType.BASIC_BT: Color(1.0, 0.0, 1.0, 1.0)
 }
 
 var ai
@@ -65,7 +68,7 @@ func init(params):
 		"experience_replay": params.experience_replay,
 		"experience_pool_size": params.experience_pool_size,
 		"think_time": params.think_time,
-		"features_size": FEATURES_SIZE,
+		"features_size": Feature.FEATURES_SIZE,
 		"initial_state": self.get_state(),
 		"initial_action": Action.IDLE,
 		"character_type": params.character_type,

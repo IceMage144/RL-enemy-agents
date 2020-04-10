@@ -1,0 +1,256 @@
+[gd_scene load_steps=15 format=2]
+
+[ext_resource path="res://Characters/AIs/BTInterface.gd" type="Script" id=1]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/blackboard.gd" type="Script" id=2]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/blackboard_icon.png" type="Texture" id=3]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/behavior_tree.gd" type="Script" id=4]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/root_icon.png" type="Texture" id=5]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/selector.gd" type="Script" id=6]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/selector_icon.png" type="Texture" id=7]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/sequence.gd" type="Script" id=8]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/sequence_icon.png" type="Texture" id=9]
+[ext_resource path="res://Characters/AIs/BehaviorTreeNodes/ConstComparator.gd" type="Script" id=10]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/condition_icon.png" type="Texture" id=11]
+[ext_resource path="res://Characters/AIs/BehaviorTreeNodes/RegisterAction.gd" type="Script" id=12]
+[ext_resource path="res://addons/godot-behavior-tree-plugin/action_icon.png" type="Texture" id=13]
+[ext_resource path="res://Characters/AIs/BehaviorTreeNodes/VarComparator.gd" type="Script" id=14]
+
+[node name="BasicBT" type="Node"]
+
+script = ExtResource( 1 )
+
+[node name="BehaviorBlackboard" type="Node" parent="." index="0"]
+
+script = ExtResource( 2 )
+__meta__ = {
+"_editor_icon": ExtResource( 3 )
+}
+
+[node name="BehaviorTree" type="Node" parent="." index="1"]
+
+script = ExtResource( 4 )
+__meta__ = {
+"_editor_icon": ExtResource( 5 )
+}
+
+[node name="BehaviorSelector" type="Node" parent="BehaviorTree" index="0"]
+
+script = ExtResource( 6 )
+__meta__ = {
+"_editor_icon": ExtResource( 7 )
+}
+
+[node name="AttackBranch" type="Node" parent="BehaviorTree/BehaviorSelector" index="0"]
+
+script = ExtResource( 8 )
+__meta__ = {
+"_editor_icon": ExtResource( 9 )
+}
+
+[node name="CanAttack" type="Node" parent="BehaviorTree/BehaviorSelector/AttackBranch" index="0"]
+
+script = ExtResource( 10 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 4
+left_variable = 14
+left_coefficient = 1.0
+left_const = 0.0
+right_variable = 40.0
+
+[node name="Attack" type="Node" parent="BehaviorTree/BehaviorSelector/AttackBranch" index="1"]
+
+script = ExtResource( 12 )
+__meta__ = {
+"_editor_icon": ExtResource( 13 )
+}
+movement = 4
+direction = 0
+
+[node name="MoveLeftBranch" type="Node" parent="BehaviorTree/BehaviorSelector" index="1"]
+
+script = ExtResource( 8 )
+__meta__ = {
+"_editor_icon": ExtResource( 9 )
+}
+
+[node name="Cond1" type="Node" parent="BehaviorTree/BehaviorSelector/MoveLeftBranch" index="0"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 4
+left_variable = 0
+left_coefficient = 1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="Cond2" type="Node" parent="BehaviorTree/BehaviorSelector/MoveLeftBranch" index="1"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 2
+left_variable = 0
+left_coefficient = -1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="MoveLeft" type="Node" parent="BehaviorTree/BehaviorSelector/MoveLeftBranch" index="2"]
+
+script = ExtResource( 12 )
+__meta__ = {
+"_editor_icon": ExtResource( 13 )
+}
+movement = 2
+direction = 268435456
+
+[node name="MoveRightBranch" type="Node" parent="BehaviorTree/BehaviorSelector" index="2"]
+
+script = ExtResource( 8 )
+__meta__ = {
+"_editor_icon": ExtResource( 9 )
+}
+
+[node name="Cond1" type="Node" parent="BehaviorTree/BehaviorSelector/MoveRightBranch" index="0"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 5
+left_variable = 0
+left_coefficient = 1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="Cond2" type="Node" parent="BehaviorTree/BehaviorSelector/MoveRightBranch" index="1"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 1
+left_variable = 0
+left_coefficient = -1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="MoveRight" type="Node" parent="BehaviorTree/BehaviorSelector/MoveRightBranch" index="2"]
+
+script = ExtResource( 12 )
+__meta__ = {
+"_editor_icon": ExtResource( 13 )
+}
+movement = 2
+direction = 16777216
+
+[node name="MoveUpBranch" type="Node" parent="BehaviorTree/BehaviorSelector" index="3"]
+
+script = ExtResource( 8 )
+__meta__ = {
+"_editor_icon": ExtResource( 9 )
+}
+
+[node name="Cond1" type="Node" parent="BehaviorTree/BehaviorSelector/MoveUpBranch" index="0"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 2
+left_variable = 0
+left_coefficient = 1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="Cond2" type="Node" parent="BehaviorTree/BehaviorSelector/MoveUpBranch" index="1"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 5
+left_variable = 0
+left_coefficient = -1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="MoveUp" type="Node" parent="BehaviorTree/BehaviorSelector/MoveUpBranch" index="2"]
+
+script = ExtResource( 12 )
+__meta__ = {
+"_editor_icon": ExtResource( 13 )
+}
+movement = 2
+direction = 67108864
+
+[node name="MoveDownBranch" type="Node" parent="BehaviorTree/BehaviorSelector" index="4"]
+
+script = ExtResource( 8 )
+__meta__ = {
+"_editor_icon": ExtResource( 9 )
+}
+
+[node name="Cond1" type="Node" parent="BehaviorTree/BehaviorSelector/MoveDownBranch" index="0"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 1
+left_variable = 0
+left_coefficient = 1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="Cond2" type="Node" parent="BehaviorTree/BehaviorSelector/MoveDownBranch" index="1"]
+
+script = ExtResource( 14 )
+__meta__ = {
+"_editor_icon": ExtResource( 11 )
+}
+conditional = 4
+left_variable = 0
+left_coefficient = -1.0
+left_const = 0.0
+right_variable = 1
+right_coefficient = 1.0
+right_const = 0.0
+
+[node name="MoveDown" type="Node" parent="BehaviorTree/BehaviorSelector/MoveDownBranch" index="2"]
+
+script = ExtResource( 12 )
+__meta__ = {
+"_editor_icon": ExtResource( 13 )
+}
+movement = 2
+direction = 1073741824
+
+[node name="Idle" type="Node" parent="BehaviorTree/BehaviorSelector" index="5"]
+
+script = ExtResource( 12 )
+__meta__ = {
+"_editor_icon": ExtResource( 13 )
+}
+movement = 0
+direction = 0
+
+
