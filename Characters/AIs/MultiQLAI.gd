@@ -4,6 +4,7 @@ extends "res://Characters/AIs/QLAI.gd"
 # Reward   -> float
 # State    -> Dict
 # Action   -> int
+# Model    -> NeuralNetwork1D
 
 var Action = preload("res://Characters/ActionBase.gd").new()
 const Experience = preload("res://Characters/AIs/Experience.gd")
@@ -11,6 +12,7 @@ const NeuralNetwork = preload("res://Characters/AIs/MultiNN.tscn")
 
 var ep
 var learning_model
+var freezed_model
 
 var action_to_id = {}
 var id_to_action = {}
@@ -43,15 +45,18 @@ func init(params):
 		self.network_key = character_type + "_MultiQLAI_" + str(network_id)
 
 	self.learning_model = NeuralNetwork.instance()
-	self.learning_model.learning_rate = self.alpha
-	self.learning_model.input_size = self.features_size
-	self.learning_model.get_node("FullyConnected2").size = self.action_to_id.size()
+	self._init_model(self.learning_model)
 	self.add_child(self.learning_model)
+
+	self.freezed_model = NeuralNetwork.instance()
+	self._init_model(self.freezed_model)
+	self.add_child(self.freezed_model)
 
 	var persisted_params = self.load_params()
 	if persisted_params != null:
 		self.learning_model.load(persisted_params.model)
 		self.time = persisted_params.time
+	self._freeze_weights()
 
 # -> void
 func end():
@@ -71,10 +76,15 @@ func reset(timeout):
 		var exp_sample = self.ep.sample()
 		self._update_weights_experience(exp_sample[0], exp_sample[1], exp_sample[2], exp_sample[3])
 
-# State, Array[Action] -> Array[float]
-func _get_q_values(state, action_list):
+func _init_model(model):
+	model.learning_rate = self.alpha
+	model.input_size = self.features_size
+	model.get_node("FullyConnected2").size = self.action_to_id.size()
+
+# State, Array[Action], Model -> Array[float]
+func _get_q_values(state, action_list, model):
 	var features = self._get_features(state)
-	var output = self.learning_model.predict_one(features)
+	var output = model.predict_one(features)
 	var q_values = []
 	for action in action_list:
 		q_values.append(output[self.action_to_id[action]])
@@ -85,16 +95,23 @@ func _compute_value_from_q_values(state):
 	if state == null:
 		return 0.0
 	var legal_actions = self.parent.get_legal_actions(state)
-	return global.max(self._get_q_values(state, legal_actions))
+	var model = self.freezed_model
+	if not self._is_freezing_weights():
+		model = self.learning_model
+	return global.max(self._get_q_values(state, legal_actions, model))
 
 # State -> Action
 func _compute_action_from_q_values(state):
 	var legal_actions = self.parent.get_legal_actions(state)
 	if randf() < self.epsilon:
 		return global.choose_one(legal_actions)
-	var prediction = self._get_q_values(state, legal_actions)
+	var prediction = self._get_q_values(state, legal_actions, self.learning_model)
 	var best_action = legal_actions[global.argmax(prediction)]
 	return best_action
+
+# -> void
+func _freeze_weights():
+	self.freezed_model.load(self.learning_model.save())
 
 # State, Action, State, Reward, bool -> void
 func _update_weights(state, action, next_state, reward, last):

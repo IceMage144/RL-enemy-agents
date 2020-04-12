@@ -9,6 +9,7 @@ const Experience = preload("res://Characters/AIs/Experience.gd")
 
 var ep
 
+var freezed_weights = []
 var learning_weights = []
 
 func init(params):
@@ -26,6 +27,9 @@ func init(params):
 	else:
 		for i in range(self.features_size):
 			self.learning_weights.append(2.0 * randf() + 1.0)
+	for i in range(self.features_size):
+		self.freezed_weights.append(0.0)
+	self._freeze_weights()
 
 func end():
 	self.save_params({
@@ -36,17 +40,20 @@ func end():
 func get_info():
 	return []
 
-func _get_q_value(state, action):
+func _get_q_value(state, action, weights):
 	var out = self._get_features_after_action(state, action)
 	for i in range(out.size()):
-		out[i] *= self.learning_weights[i]
+		out[i] *= weights[i]
 	return global.sum(out)
 
 func _compute_value_from_q_values(state):
 	var legal_actions = self.parent.get_legal_actions(state)
 	var q_values = []
+	var weights = self.freezed_weights
+	if not self._is_freezing_weights():
+		weights = self.learning_weights
 	for action in legal_actions:
-		q_values.append(self._get_q_value(state, action))
+		q_values.append(self._get_q_value(state, action, weights))
 	return global.max(q_values)
 
 func _compute_action_from_q_values(state):
@@ -56,7 +63,7 @@ func _compute_action_from_q_values(state):
 	var max_val = -INF
 	var max_action_set = []
 	for action in legal_actions:
-		var val = self._get_q_value(state, action)
+		var val = self._get_q_value(state, action, self.learning_weights)
 		if val == max_val:
 			max_action_set.append(action)
 		elif val > max_val:
@@ -64,16 +71,20 @@ func _compute_action_from_q_values(state):
 			max_val = val
 	return global.choose_one(max_action_set)
 
+func _freeze_weights():
+	for i in range(self.features_size):
+		self.freezed_weights[i] = self.learning_weights[i]
+
 func _update_weights(state, action, next_state, reward, last):
 	var next_val = self._compute_value_from_q_values(next_state)
 	var target = reward
 	if not last:
 		target += self.discount * next_val
-	var prediction = self._get_q_value(state, action)
+	var prediction = self._get_q_value(state, action, self.learning_weights)
 	var correction = target - prediction
 	var features = self._get_features(next_state)
 
-	for i in range(self.learning_weights.size()):
+	for i in range(self.features_size):
 		self.learning_weights[i] += self.alpha * correction * features[i]
 	global.normalize(self.learning_weights)
 

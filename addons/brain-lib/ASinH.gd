@@ -1,11 +1,10 @@
-extends Node
+extends "Layer.gd"
 
 const ASinH = preload("res://bin/asinh.gdns")
-
-var _layer
 
 func _ready():
 	self._layer = ASinH.new()
 
-func _has_props(props):
+func _has_props(props_list, pos):
+	var props = props_list[pos]
 	return (props.type == "asinh")

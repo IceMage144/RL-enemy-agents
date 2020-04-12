@@ -1,4 +1,4 @@
-extends Node
+extends "Layer.gd"
 
 const LSTM = preload("res://bin/lstm.gdns")
 
@@ -8,8 +8,6 @@ export(int, 1, 10000) var num_layers = 1
 export(float, 0.0, 1.0, 0.0001) var dropout_rate = 0.0
 export(bool) var has_bias = true
 
-var _layer
-
 func _ready():
 	self._layer = LSTM.new()
 	self._layer.has_bias = self.has_bias
@@ -18,9 +16,24 @@ func _ready():
 	self._layer.depth = self.depth
 	self._layer.size = self.size
 
-func _has_props(props):
-	var prop1 = (props.type == "recurrent_layer")
-	var prop2 = (props.seq_len == self.depth)
-	var prop3 = (props.lstm_cell.out_size == self.size)
-	var prop4 = (props.lstm_cell.has_bias == self.has_bias)
-	return prop1 and prop2 and prop3 and prop4
+func _has_props(props_list, pos):
+	var size = self._internal_size()
+	for i in range(size):
+		var props = props_list[pos + i]
+		if (i % 2 == 1 and props.type != "dropout") or \
+		   (i % 2 == 0 and (props.type != "recurrent_layer" or \
+		   not props.has("lstm_cell"))):
+			return false
+	var res = true
+	for i in range(size):
+		var props = props_list[pos + i]
+		if i % 2 == 0:
+			res = res and (props.seq_len == self.depth)
+			res = res and (props.lstm_cell.out_size == self.size)
+			res = res and (props.lstm_cell.has_bias == self.has_bias)
+		else:
+			res = res and (props.dropout_rate == self.dropout_rate)
+	return res
+
+func _internal_size():
+	return 2 * self.num_layers - 1

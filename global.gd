@@ -107,6 +107,11 @@ func dict_get(dict, key, default):
 		return default
 	return dict[key]
 
+func insert_default_keys(dict, default):
+	for key in default.keys():
+		if not dict.has(key):
+			dict[key] = default[key]
+
 func create_array(size, fill=null):
 	var array = []
 	for i in range(size):

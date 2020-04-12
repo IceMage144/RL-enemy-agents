@@ -33,6 +33,7 @@ export(float, 0.0, 1.0, 0.001) var min_exploration_rate = 0.0
 export(float) var exploration_rate_decay_time = 0.0
 export(bool) var experience_replay = false
 export(int) var experience_pool_size = 40
+export(int) var num_freeze_iter = 1
 export(float) var think_time = 0.1
 
 var already_hit = []
@@ -55,7 +56,7 @@ func _init_ai_controller(params):
 	var AIControllerScript = self._get_ai_controller_script()
 	self.controller.set_script(AIControllerScript)
 	self.add_child(self.controller)
-	var init_params = {
+	var default_params = {
 		"ai_type": self.ai_type,
 		"learning_activated": self.learning_activated,
 		"learning_rate": self.learning_rate,
@@ -65,15 +66,14 @@ func _init_ai_controller(params):
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
 		"experience_replay": self.experience_replay,
 		"experience_pool_size": self.experience_pool_size,
+		"num_freeze_iter": self.num_freeze_iter,
 		"think_time": self.think_time,
 		"character_type": self.character_type,
 		"network_id": self.network_id,
 		"can_save": self.can_save
 	}
-	for key in init_params.keys():
-		if params.has(key):
-			init_params[key] = params[key]
-	self.controller.init(init_params)
+	global.insert_default_keys(params, default_params)
+	self.controller.init(default_params)
 	if GameConfig.get_debug_flag("character"):
 		$Sprite.modulate = self.controller.color
 		

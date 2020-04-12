@@ -88,15 +88,17 @@ func load(data):
 	)
 	var nodes_data = parse_result.model
 	var children = self.get_children()
+	var i = 0
+	for child in children:
+		Util.assert(
+			child._has_props(nodes_data, i),
+			"Node " + child.name + " does not have the required properties to be loaded."
+		)
+		i += child._internal_size()
 	Util.assert(
-		nodes_data.size() == children.size(),
+		nodes_data.size() == i,
 		"Network data size doesn't match tree size."
 	)
-	for i in range(nodes_data.size()):
-		Util.assert(
-			children[i]._has_props(nodes_data[i]),
-			"Node " + children[i].name + " does not have the required properties to be loaded."
-		)
 	self._nn.load(parse_result.weights, parse_result.optim)
 
 func forward(input):

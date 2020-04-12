@@ -4,12 +4,14 @@ extends "res://Characters/AIs/QLAI.gd"
 # Reward   -> float
 # State    -> Dict
 # Action   -> int
+# Model    -> NeuralNetwork1D
 
 const Experience = preload("res://Characters/AIs/Experience.gd")
 const NeuralNetwork = preload("res://Characters/AIs/MemoryNN.tscn")
 
 var ep
 var learning_model
+var freezed_model
 
 var seq_size = 4
 
@@ -23,15 +25,18 @@ func init(params):
 		self.network_key = character_type + "_MemoryQLAI_" + str(network_id)
 
 	self.learning_model = NeuralNetwork.instance()
-	self.learning_model.learning_rate = self.alpha
-	self.learning_model.input_size = self.features_size
-	self.learning_model.get_node("LSTM").depth = self.seq_size
+	self._init_model(self.learning_model)
 	self.add_child(self.learning_model)
+
+	self.freezed_model = NeuralNetwork.instance()
+	self._init_model(self.freezed_model)
+	self.add_child(self.freezed_model)
 	
 	var persisted_params = self.load_params()
 	if persisted_params != null:
 		self.learning_model.load(persisted_params.model)
 		self.time = persisted_params.time
+	self._freeze_weights()
 
 # -> void
 func end():
@@ -53,16 +58,23 @@ func reset(timeout):
 		self._update_weights_experience(exp_sample[0], exp_sample[1], exp_sample[2])
 
 # -> void
+func _init_model(model):
+	model.learning_rate = self.alpha
+	model.input_size = self.features_size
+	model.get_node("LSTM").depth = self.seq_size
+
+# -> void
 func _clear_memory():
 	self.ep.clean_end()
 	self.learning_model.clear_memory()
+	self.freezed_model.clear_memory()
 
-# State, Action, bool -> float
-func _get_q_value(state, action, change_memo=false):
+# State, Action, Model, bool -> float
+func _get_q_value(state, action, model, change_memo=false):
 	var features = self._get_features_after_action(state, action)
 	if change_memo:
-		return self.learning_model.forward(features)[0]
-	return self.learning_model.predict_one(features)[0]
+		return model.forward(features)[0]
+	return model.predict_one(features)[0]
 
 # State, bool -> float
 func _compute_value_from_q_values(state, change_memo=false):
@@ -70,8 +82,11 @@ func _compute_value_from_q_values(state, change_memo=false):
 		return 0.0
 	var legal_actions = self.parent.get_legal_actions(state)
 	var q_values_list = []
+	var model = self.freezed_model
+	if not self._is_freezing_weights():
+		model = self.learning_model
 	for a in legal_actions:
-		q_values_list.append(self._get_q_value(state, a, change_memo))
+		q_values_list.append(self._get_q_value(state, a, model, change_memo))
 	return global.max(q_values_list)
 
 # State -> Action
@@ -81,8 +96,12 @@ func _compute_action_from_q_values(state):
 		return global.choose_one(legal_actions)
 	var q_values_list = []
 	for a in legal_actions:
-		q_values_list.append(self._get_q_value(state, a))
+		q_values_list.append(self._get_q_value(state, a, self.learning_model))
 	return legal_actions[global.argmax(q_values_list)]
+
+# -> void
+func _freeze_weights():
+	self.freezed_model.load(self.learning_model.save())
 
 # State, Action, State, Reward, bool -> void
 func _update_weights(state, action, next_state, reward, last):

@@ -67,6 +67,7 @@ func init(params):
 		"exploration_rate_decay_time": params.exploration_rate_decay_time,
 		"experience_replay": params.experience_replay,
 		"experience_pool_size": params.experience_pool_size,
+		"num_freeze_iter": params.num_freeze_iter,
 		"think_time": params.think_time,
 		"features_size": Feature.FEATURES_SIZE,
 		"initial_state": self.get_state(),

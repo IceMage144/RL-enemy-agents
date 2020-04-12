@@ -20,12 +20,15 @@ tile_data = PoolIntArray( 0, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0, 4, 1, 0, 5, 1, 0, 
 
 position = Vector2( 576.969, 287.522 )
 ai_type = 4
+num_freeze_iter = 1
 
 [node name="Goblin2" parent="Wall" index="1" groups=[
 "team2",
 ] instance=ExtResource( 4 )]
 
 position = Vector2( 479.586, 287.726 )
+ai_type = 2
+num_freeze_iter = 10
 
 [node name="TimeoutTimer" type="Timer" parent="." index="3"]
 
