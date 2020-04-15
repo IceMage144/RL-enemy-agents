@@ -8,7 +8,7 @@ func push(name, val):
 	self.table[name].append(val)
 
 func avg(name):
-	if not self.table.has(name):
+	if not self.table.has(name) or self.table[name].size() == 0:
 		return 0.0
 	return global.sum(self.table[name]) / self.table[name].size()
 
@@ -23,7 +23,7 @@ func min(name):
 	return global.min(self.table[name])
 
 func sum(name):
-	if not self.table.has(name):
+	if not self.table.has(name) or self.table[name].size() == 0:
 		return 0.0
 	return global.sum(self.table[name])
 

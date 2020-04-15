@@ -16,18 +16,9 @@ const ai_path = {
 	AIType.BASIC_BT: "res://Characters/AIs/BasicBTAI.gd"
 }
 
-const ai_color = {
-	AIType.PERCEPTRON_QL: Color(0.2, 1.0, 0.2, 1.0),
-	AIType.SINGLE_QL: Color(1.0, 0.2, 0.2, 1.0),
-	AIType.MEMORY_QL: Color(0.2, 0.2, 1.0, 1.0),
-	AIType.MULTI_QL: Color(0.0, 1.0, 1.0, 1.0),
-	AIType.BASIC_BT: Color(1.0, 0.0, 1.0, 1.0)
-}
-
 var ai
 var enemy
 var tm
-var color = Color(1.0, 1.0, 1.0, 1.0)
 var parent
 var velocity = Vector2()
 
@@ -53,8 +44,6 @@ func _ready():
 		$DebugTimer.start()
 
 func init(params):
-	self.color = ai_color[params.ai_type]
-
 	self.ai = AINode.instance()
 	self.ai.set_script(load(ai_path[params.ai_type]))
 	self.add_child(self.ai)
@@ -76,7 +65,6 @@ func init(params):
 		"network_id": params.network_id,
 		"can_save": params.can_save
 	})
-	$DebugTimer.connect("timeout", self.ai, "_on_DebugTimer_timeout")
 	$ThinkTimer.wait_time = params.think_time
 	$ThinkTimer.start()
 
@@ -161,5 +149,13 @@ func _on_ThinkTimer_timeout():
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
-	print("======== " + self.name + " ========")
+	print("======== " + self.parent.get_full_name() + " ========")
+	var stats = ["max", "min", "avg"]
+	self.logger.print_stats("update_state", stats)
+	# self.logger.print_stats("max_q_val", stats)
+	# self.logger.print_stats("reward", stats)
+	self.logger.flush("update_state")
+	# self.logger.flush("max_q_val")
+	# self.logger.flush("reward")
+	# print("epsilon: {}".format(self.epsilon))
 	self.ai._on_DebugTimer_timeout()

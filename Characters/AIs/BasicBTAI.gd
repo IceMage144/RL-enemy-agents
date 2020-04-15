@@ -9,5 +9,4 @@ func init(params):
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
-	print("------ BasicBTAI ------")
 	._on_DebugTimer_timeout()

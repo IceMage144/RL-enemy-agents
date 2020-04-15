@@ -117,11 +117,4 @@ func _update_epsilon():
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
-	var stats = ["max", "min", "avg"]
-	self.parent.logger.print_stats("update_state", stats)
-	# self.logger.print_stats("max_q_val", stats)
-	# self.logger.print_stats("reward", stats)
-	self.parent.logger.flush("update_state")
-	# self.logger.flush("max_q_val")
-	# self.logger.flush("reward")
-	# print("epsilon: {}".format(self.epsilon))
+	pass

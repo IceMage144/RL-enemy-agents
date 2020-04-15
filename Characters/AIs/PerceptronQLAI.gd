@@ -94,5 +94,4 @@ func _update_weights(state, action, next_state, reward, last):
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
-	print("------ PerceptronQLAI ------")
 	._on_DebugTimer_timeout()

@@ -15,8 +15,21 @@ const KNOCKBACK_INITIAL_SPEED = 800
 const KNOCKBACK_DECAY_RATE = 0.6
 const KNOCKBACK_MIN = Vector2(20, 20)
 
-const ai_name = ["Perceptron QL", "Single QL", "Memory QL",
-				 "Multi QL", "Basic BT"]
+const ai_name = {
+	AIType.PERCEPTRON_QL: "Perceptron QL",
+	AIType.SINGLE_QL: "Single QL",
+	AIType.MEMORY_QL: "Memory QL",
+	AIType.MULTI_QL: "Multi QL",
+	AIType.BASIC_BT: "Basic BT"
+}
+
+const ai_color = {
+	AIType.PERCEPTRON_QL: Color(0.2, 1.0, 0.2, 1.0),
+	AIType.SINGLE_QL: Color(1.0, 0.2, 0.2, 1.0),
+	AIType.MEMORY_QL: Color(0.2, 0.2, 1.0, 1.0),
+	AIType.MULTI_QL: Color(0.0, 1.0, 1.0, 1.0),
+	AIType.BASIC_BT: Color(1.0, 0.0, 1.0, 1.0)
+}
 
 export(int) var speed = 120
 export(float) var weight = 1
@@ -47,40 +60,11 @@ var network_id = null
 var knockback = Vector2()
 var invulnerable = false
 
-onready var life = self.max_life
-onready var character_type = self.get_script().get_path().get_file().get_basename()
 onready var anim_node = $Sprite/AnimationPlayer
 onready var Action = ActionClass.new()
-
-func _init_ai_controller(params):
-	var AIControllerScript = self._get_ai_controller_script()
-	self.controller.set_script(AIControllerScript)
-	self.add_child(self.controller)
-	var default_params = {
-		"ai_type": self.ai_type,
-		"learning_activated": self.learning_activated,
-		"learning_rate": self.learning_rate,
-		"discount": self.discount,
-		"max_exploration_rate": self.max_exploration_rate,
-		"min_exploration_rate": self.min_exploration_rate,
-		"exploration_rate_decay_time": self.exploration_rate_decay_time,
-		"experience_replay": self.experience_replay,
-		"experience_pool_size": self.experience_pool_size,
-		"num_freeze_iter": self.num_freeze_iter,
-		"think_time": self.think_time,
-		"character_type": self.character_type,
-		"network_id": self.network_id,
-		"can_save": self.can_save
-	}
-	global.insert_default_keys(params, default_params)
-	self.controller.init(default_params)
-	if GameConfig.get_debug_flag("character"):
-		$Sprite.modulate = self.controller.color
-		
-
-func _get_ai_controller_script():
-	var filepath = self.get_script().get_path().get_basename()
-	return load(filepath + "RobotController.gd")
+onready var life = self.max_life
+onready var character_type = self.get_script().get_path().get_file().get_basename()
+onready var team = global.get_team(self)
 
 func _ready():
 	self.anim_node.play(Action.to_string(self.action))
@@ -142,11 +126,44 @@ func _physics_process(delta):
 	else:
 		self.move_and_slide(self.speed * self.velocity)
 
+func _init_ai_controller(params):
+	var AIControllerScript = self._get_ai_controller_script()
+	self.controller.set_script(AIControllerScript)
+	self.add_child(self.controller)
+	var default_params = {
+		"ai_type": self.ai_type,
+		"learning_activated": self.learning_activated,
+		"learning_rate": self.learning_rate,
+		"discount": self.discount,
+		"max_exploration_rate": self.max_exploration_rate,
+		"min_exploration_rate": self.min_exploration_rate,
+		"exploration_rate_decay_time": self.exploration_rate_decay_time,
+		"experience_replay": self.experience_replay,
+		"experience_pool_size": self.experience_pool_size,
+		"num_freeze_iter": self.num_freeze_iter,
+		"think_time": self.think_time,
+		"character_type": self.character_type,
+		"network_id": self.network_id,
+		"can_save": self.can_save
+	}
+	global.insert_default_keys(params, default_params)
+	self.controller.init(default_params)
+	if GameConfig.get_debug_flag("character") and \
+	  self.controller_type == Controller.AI:
+		$Sprite.modulate = ai_color[self.ai_type]
+
+func _get_ai_controller_script():
+	var filepath = self.get_script().get_path().get_basename()
+	return load(filepath + "RobotController.gd")
+
 func is_ai():
 	return self.controller_type == Controller.AI
 
 func get_full_name():
 	return self.name + " (" + self.controller_name + ")"
+
+func get_team():
+	return self.team
 
 func set_max_life(new_max_life):
 	self.max_life = new_max_life
@@ -180,12 +197,14 @@ func take_damage(damage, knockback=false):
 	self.invulnerable = true
 
 func set_movement(new_movement, force=false):
-	if (self.action != Action.DEATH and self.can_act or force) and new_movement != Action.get_movement(self.action):
+	if (self.action != Action.DEATH and self.can_act or force) and \
+	  new_movement != Action.get_movement(self.action):
 		self.action = Action.compose(new_movement, self.action)
 		self.anim_node.play(Action.to_string(self.action))
 
 func set_action(new_action, force=false):
-	if (self.action != Action.DEATH and self.can_act or force) and new_action != self.action:
+	if (self.action != Action.DEATH and self.can_act or force) and \
+	  new_action != self.action:
 		self.action = new_action
 		self.anim_node.play(Action.to_string(self.action))
 
@@ -226,9 +245,10 @@ func after_reset(timeout):
 	self.controller.after_reset(timeout)
 
 func _is_entity_attackable(entity):
-	return entity.is_in_group("damageble") and not entity.invulnerable and \
-		   not entity.is_in_group(global.get_team(self)) and not (entity in self.already_hit) and \
-		   Action.get_movement(entity.action) != Action.DEATH
+	return entity.is_in_group("damageble") and \
+	  not global.obj_get(entity, "invulnerable", false) and \
+	  not (entity in self.already_hit) and \
+	  Action.get_movement(entity.action) != Action.DEATH
 
 func _on_AnimationPlayer_animation_finished(anim_name):
 	var death = Action.to_string(Action.DEATH)
@@ -238,8 +258,10 @@ func _on_AnimationPlayer_animation_finished(anim_name):
 func _on_AttackArea_area_entered(area):
 	var entity = area.get_parent()
 	if self._is_entity_attackable(entity) and \
-	   $AttackArea/AttackAreaPolygon.polygon.size() > 1 and \
-	   (entity.position - self.position).dot(Action.to_vec(self.action)) >= 0:
+	  entity.get_team() != self.get_team() and \
+	  $AttackArea/AttackAreaPolygon.polygon.size() > 1 and \
+	  (entity.position - self.position).dot(Action.to_vec(self.action)) >= 0 and \
+	  Action.has(self.action, Action.ATTACK):
 		entity.take_damage(self.get_damage())
 		entity.get_knocked_back(self)
 		self.already_hit.append(entity)

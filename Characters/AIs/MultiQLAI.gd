@@ -137,5 +137,4 @@ func _update_weights_experience(feat_sample, reward_sample, next_sample, action_
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
-	print("------ MultiQLAI ------")
 	._on_DebugTimer_timeout()

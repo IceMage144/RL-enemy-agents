@@ -23,9 +23,9 @@ var current_popup = null
 func _ready():
 	randomize()
 	self.FirstSceneClass = load(scene_path[first_scene])
+	self._init_debug_flags()
 	self.reset_game()
 	self._check_persistence_tags()
-	self._init_debug_flags()
 
 func _process(_delta):
 	if Input.is_action_just_pressed("pause"):

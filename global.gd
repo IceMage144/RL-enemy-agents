@@ -107,6 +107,13 @@ func dict_get(dict, key, default):
 		return default
 	return dict[key]
 
+func obj_get(obj, key, default):
+	if key == null:
+		return null
+	if not obj.has_meta(key):
+		return default
+	return obj[key]
+
 func insert_default_keys(dict, default):
 	for key in default.keys():
 		if not dict.has(key):

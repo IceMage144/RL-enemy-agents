@@ -132,5 +132,4 @@ func _update_weights_experience(feat_sample, reward_sample, next_sample):
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
-	print("------ MemoryQLAI ------")
 	._on_DebugTimer_timeout()
