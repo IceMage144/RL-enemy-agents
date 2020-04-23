@@ -120,10 +120,16 @@ func predict(data_set):
 		return self._predict_sequence(data_set)
 	return self._predict(data_set)
 
-func train(data_set, out_set, batch_size = SAME_AS_INPUT, epoch = 1):
+func train(data_set, out_set, batch_size = SAME_AS_INPUT, epoch = 1,  weights = []):
+	if data_set.size() == 0:
+		return 0.0
 	Util.assert(
 		data_set.size() == out_set.size(),
 		"NeuralNetwork1D.train data set and out set sizes don't match."
+	)
+	Util.assert(
+		weights.size() == 0 or data_set.size() == weights.size(),
+		"NeuralNetwork1D.train data set and weigths sizes don't match."
 	)
 	Util.assert(
 		data_set.size() >= batch_size,
@@ -132,8 +138,8 @@ func train(data_set, out_set, batch_size = SAME_AS_INPUT, epoch = 1):
 	if batch_size == SAME_AS_INPUT:
 		batch_size = data_set.size()
 	if self._nn.has_memory():
-		return self._train_sequence(data_set, out_set, batch_size, epoch)
-	return self._train(data_set, out_set, batch_size, epoch)
+		return self._train_sequence(data_set, out_set, batch_size, epoch, weights)
+	return self._train(data_set, out_set, batch_size, epoch, weights)
 
 func loss(data_set, out_set):
 	Util.assert(
@@ -158,7 +164,7 @@ func _predict_sequence(data_set):
 	)
 	return self._nn.predict_sequence(data_set)
 
-func _train(data_set, out_set, batch_size, epoch):
+func _train(data_set, out_set, batch_size, epoch, weights_set):
 	Util.assert(
 		Util.is_compose_type(data_set, DATA_SET_TYPE),
 		"NeuralNetwork1D.train first arg must be an Array[] of Array[" + str(self.input_size) + "] of floats (array of input vectors)."
@@ -167,9 +173,9 @@ func _train(data_set, out_set, batch_size, epoch):
 		Util.is_compose_type(out_set, OUT_SET_TYPE),
 		"NeuralNetwork1D.train second arg must be an Array[] of Array[" + str(self.output_size) + "] of floats (array of output vectors)."
 	)
-	return self._nn.train(data_set, out_set, batch_size, epoch)
+	return self._nn.train(data_set, out_set, batch_size, epoch, weights_set)
 
-func _train_sequence(data_set, out_set, batch_size, epoch):
+func _train_sequence(data_set, out_set, batch_size, epoch, weights_set):
 	Util.assert(
 		Util.is_compose_type(data_set, SEQ_DATA_SET_TYPE),
 		"NeuralNetwork1D.train first arg must be an Array[] of Array[" + str(self.depth) + "] of Array[" + str(self.input_size) + "] of floats (array of sequences of input vectors)."
@@ -178,7 +184,7 @@ func _train_sequence(data_set, out_set, batch_size, epoch):
 		Util.is_compose_type(out_set, SEQ_OUT_SET_TYPE),
 		"NeuralNetwork1D.train second arg must be an Array[] of Array[" + str(self.depth) + "] of Array[" + str(self.output_size) + "] of floats (array of sequences of input vectors)."
 	)
-	return self._nn.train_sequence(data_set, out_set, batch_size, epoch)
+	return self._nn.train_sequence(data_set, out_set, batch_size, epoch, weights_set)
 
 func _loss(data_set, out_set):
 	Util.assert(

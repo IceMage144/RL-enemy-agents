@@ -6,7 +6,7 @@ extends "res://Characters/AIs/QLAI.gd"
 # Action   -> int
 # Model    -> NeuralNetwork1D
 
-const Experience = preload("res://Characters/AIs/Experience.gd")
+const Experience = preload("res://Characters/AIs/ExperienceMemo.gd")
 const NeuralNetwork = preload("res://Characters/AIs/MemoryNN.tscn")
 
 var ep
@@ -55,7 +55,7 @@ func reset(timeout):
 	self._clear_memory()
 	if self.use_experience_replay and self.learning_activated:
 		var exp_sample = self.ep.sample()
-		self._update_weights_experience(exp_sample[0], exp_sample[1], exp_sample[2])
+		self._update_weights_experience(exp_sample[1], exp_sample[2], exp_sample[3])
 
 # -> void
 func _init_model(model):
@@ -115,7 +115,7 @@ func _update_weights(state, action, next_state, reward, last):
 
 	if self.ep.end_is_clean():
 		var exp_sample = self.ep.simple_sample()
-		self._update_weights_experience(exp_sample[0], exp_sample[1], exp_sample[2])
+		self._update_weights_experience(exp_sample[1], exp_sample[2], exp_sample[3])
 
 # Array[Array[Features]], Array[Array[Reward]], Array[Array[State]] -> void
 func _update_weights_experience(feat_sample, reward_sample, next_sample):

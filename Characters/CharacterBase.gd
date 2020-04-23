@@ -45,6 +45,8 @@ export(float, 0.0, 1.0, 0.001) var max_exploration_rate = 1.0
 export(float, 0.0, 1.0, 0.001) var min_exploration_rate = 0.0
 export(float) var exploration_rate_decay_time = 0.0
 export(bool) var experience_replay = false
+export(float, 0.0, 1.0) var priority_exponent = 0.0
+export(float, 0.0, 1.0) var weight_exponent = 0.0
 export(int) var experience_pool_size = 40
 export(int) var num_freeze_iter = 1
 export(float) var think_time = 0.1
@@ -140,6 +142,8 @@ func _init_ai_controller(params):
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
 		"experience_replay": self.experience_replay,
 		"experience_pool_size": self.experience_pool_size,
+		"priority_exponent": self.priority_exponent,
+		"weight_exponent": self.weight_exponent,
 		"num_freeze_iter": self.num_freeze_iter,
 		"think_time": self.think_time,
 		"character_type": self.character_type,

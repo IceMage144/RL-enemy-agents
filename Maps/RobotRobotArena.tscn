@@ -19,7 +19,10 @@ tile_data = PoolIntArray( 0, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0, 4, 1, 0, 5, 1, 0, 
 ] instance=ExtResource( 4 )]
 
 position = Vector2( 576.969, 287.522 )
-ai_type = 4
+exploration_rate_decay_time = 80.0
+priority_exponent = 0.6
+weight_exponent = 0.8
+experience_pool_size = 200
 num_freeze_iter = 1
 
 [node name="Goblin2" parent="Wall" index="1" groups=[
@@ -27,7 +30,10 @@ num_freeze_iter = 1
 ] instance=ExtResource( 4 )]
 
 position = Vector2( 479.586, 287.726 )
-ai_type = 2
+ai_type = 4
+exploration_rate_decay_time = 100.0
+priority_exponent = 0.0
+weight_exponent = 0.0
 num_freeze_iter = 10
 
 [node name="TimeoutTimer" type="Timer" parent="." index="3"]

@@ -105,7 +105,10 @@ max_exploration_rate = 1.0
 min_exploration_rate = 0.0
 exploration_rate_decay_time = 0.0
 experience_replay = false
+priority_exponent = 0.0
+weight_exponent = 0.0
 experience_pool_size = 40
+num_freeze_iter = 1
 think_time = 0.1
 
 [node name="Shadow" type="Polygon2D" parent="." index="0"]

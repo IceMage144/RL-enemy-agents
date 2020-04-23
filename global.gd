@@ -9,6 +9,8 @@ const TEAMS = [
 	"team4"
 ]
 
+const EPS = 1e-12
+
 func has_entity(entity_name):
 	return len(get_tree().get_nodes_in_group(entity_name)) != 0
 
@@ -69,14 +71,18 @@ func choose_one(array, include_null=false, a=-1, b=-1):
 		return null
 	return array[rand_num]
 
-func sample(array, num, include_null=false, a=-1, b=-1):
-	if a == -1:
-		a = 0
+func sample(array, num, include_null=false, a=0, b=-1):
 	if b == -1:
 		b = array.size()
 	var ret = []
 	for i in range(num):
 		ret.append(self.choose_one(array, include_null, a, b))
+	return ret
+
+func sample_range(a=0.0, b=1.0, num=1):
+	var ret = []
+	for i in range(num):
+		ret.append((b - a) * randf() + a)
 	return ret
 
 func choose(array, num):
@@ -132,6 +138,11 @@ func create_matrix(height, width, fill=null):
 		for j in range(width):
 			matrix[i].append(fill)
 	return matrix
+
+func swap(array, pos1, pos2):
+	var tmp = array[pos1]
+	array[pos1] = array[pos2]
+	array[pos2] = tmp
 
 func max(array):
 	if array.size() == 0:

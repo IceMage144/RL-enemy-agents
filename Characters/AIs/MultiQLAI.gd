@@ -74,7 +74,7 @@ func reset(timeout):
 	.reset(timeout)
 	if self.use_experience_replay and self.learning_activated:
 		var exp_sample = self.ep.sample()
-		self._update_weights_experience(exp_sample[0], exp_sample[1], exp_sample[2], exp_sample[3])
+		self._update_weights_experience(exp_sample[1], exp_sample[2], exp_sample[3], exp_sample[4])
 
 func _init_model(model):
 	model.learning_rate = self.alpha
@@ -120,7 +120,7 @@ func _update_weights(state, action, next_state, reward, last):
 	if not last:
 		self.ep.push(features, reward, next_state, action_id)
 	var exp_sample = self.ep.simple_sample()
-	self._update_weights_experience(exp_sample[0], exp_sample[1], exp_sample[2], exp_sample[3])
+	self._update_weights_experience(exp_sample[1], exp_sample[2], exp_sample[3], exp_sample[4])
 	self.parent.logger.push("reward", reward)
 
 # Array[Features], Array[Reward], Array[State], Array[Action] -> void

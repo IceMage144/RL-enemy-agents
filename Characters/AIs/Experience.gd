@@ -1,99 +1,81 @@
 extends Object
 
-const MINIMUM_SIZE_FACTOR = 3
-const NO_DEPTH = 0
+const SumTree = preload("res://Structures/SumTree.gd")
+const MaxHeap = preload("res://Structures/MaxHeap.gd")
+
+const MINIMUM_SIZE_FACTOR = 2
 
 var sample_size
-var max_depth
+var weight_exponent
+var st
+var weight_heap
 
-var depth = 0
-var keys = []
 var features = []
 var rewards = []
 var next_states = []
 var actions = []
+var max_priority = 1.0
 
 # int, int -> void
-func _init(sample_size, max_depth = NO_DEPTH):
-    self.sample_size = sample_size
-    self.max_depth = max_depth
-    if self._has_depth():
-        self._push_clean()
+func _init(sample_size, weight_exponent):
+	self.sample_size = sample_size
+	self.weight_exponent = weight_exponent
+	self.st = SumTree.new()
+	self.weight_heap = MaxHeap.new()
 
-# -> bool
-func _has_depth():
-    return self.max_depth != NO_DEPTH
-
-# -> bool
-func _is_full():
-    return not self._has_depth() or self.depth == self.max_depth
-
-# -> void
-func _push_clean():
-    self.keys.append(self.keys.size())
-    self.features.append([])
-    self.rewards.append([])
-    self.next_states.append([])
-    self.actions.append([])
-    self.depth = 0
-
-# Features, Reward, State, Action -> void
+# Features, Reward, State, Action, -> void
 func push(feat, reward, next_state, action = null):
-    if self._has_depth():
-        self.features.back().append(feat)
-        self.rewards.back().append(reward)
-        self.next_states.back().append(next_state)
-        self.actions.back().append(action)
-        self.depth += 1
-        if self._is_full():
-            self._push_clean()
-    else:
-        self.keys.append(self.keys.size())
-        self.features.append(feat)
-        self.rewards.append(reward)
-        self.next_states.append(next_state)
-        self.actions.append(action)
+	self.features.append(feat)
+	self.rewards.append(reward)
+	self.next_states.append(next_state)
+	self.actions.append(action)
+	self.st.insert(max_priority)
+	self.weight_heap.insert(1.0)
 
-# -> void
-func pop():
-    self.keys.pop_back()
-    self.features.pop_back()
-    self.rewards.pop_back()
-    self.next_states.pop_back()
-    self.actions.pop_back()
-    self.depth = 0
-    if self._has_depth():
-        self._push_clean()
+# Array[LeafID], Array[float] -> Array[float]
+func update(pos_list, new_priorities):
+	var batch_size = pos_list.size()
+	var weights = []
+	for i in range(batch_size):
+		var el_prob = self.st.get_priority(pos_list[i]) / self.st.get_sum()
+		var max_weight = self.weight_heap.get_max()
+		var weight = pow(batch_size * el_prob, -self.weight_exponent) / max_weight
+		weights.append(weight)
+		self.weight_heap.update(pos_list[i], weight)
+		self.st.update(pos_list[i], new_priorities[i])
+		if new_priorities[i] > self.max_priority:
+			self.max_priority = new_priorities[i]
+	print("max_weight ", self.weight_heap.get_max())
+	return weights
 
-# -> void
-func clean_end():
-    if self.depth > 0:
-        self.pop()
-
-# -> bool
-func end_is_clean():
-    return self.depth == 0
-
-# (max_depth == 0) -> Array{ Array[Features], Array[Reward], Array[State], Array[Action] }
-# (max_depth != 0) -> Array{ Array[Array[Features]], Array[Array[Reward]], Array[Array[State]], Array[Array[Action]] }
+# -> Array{ Array[LeafID], Array[Features], Array[Reward], Array[State], Array[Action] }
 func sample():
-    var ret = [[], [], [], []]
-    if self.keys.size() > MINIMUM_SIZE_FACTOR * self.sample_size:
-        var sample_keys = global.sample(self.keys, self.sample_size, false, 0, self.keys.size() - 2)
-        for key in sample_keys:
-            ret[0].append(self.features[key])
-            ret[1].append(self.rewards[key])
-            ret[2].append(self.next_states[key])
-            ret[3].append(self.actions[key])
-    return ret
+	var ret = [[], [], [], [], []]
+	if self.st.get_size() > MINIMUM_SIZE_FACTOR * self.sample_size:
+		var sum = self.st.get_sum()
+		var priorities_sample = []
+		var part = sum / self.sample_size
+		for i in range(self.sample_size):
+			var priority = global.sample_range(i * part, (i + 1) * part)
+			priorities_sample.append(priority[0])
+		for priority in priorities_sample:
+			var key = self.st.find(priority)
+			ret[0].append(key)
+			ret[1].append(self.features[key])
+			ret[2].append(self.rewards[key])
+			ret[3].append(self.next_states[key])
+			ret[4].append(self.actions[key])
+	return ret
 
-# (max_depth == 0) -> Array{ Array[Features], Array[Reward], Array[State], Array[Action] }
-# (max_depth != 0) -> Array{ Array[Array[Features]], Array[Array[Reward]], Array[Array[State]], Array[Array[Action]] }
+# -> Array{ Array[LeafID], Array[Features], Array[Reward], Array[State], Array[Action] }
 func simple_sample():
-    var ret = [[], [], [], []]
-    var sample_key = global.choose_one(self.keys, false, 0, self.keys.size() - 2)
-    ret[0].append(self.features[sample_key])
-    ret[1].append(self.rewards[sample_key])
-    ret[2].append(self.next_states[sample_key])
-    ret[3].append(self.actions[sample_key])
-    return ret
+	var ret = [[], [], [], [], []]
+	var sum = self.st.get_sum()
+	var priorities_sample = global.sample_range(0.0, sum)
+	var key = self.st.find(priorities_sample[0])
+	ret[0].append(key)
+	ret[1].append(self.features[key])
+	ret[2].append(self.rewards[key])
+	ret[3].append(self.next_states[key])
+	ret[4].append(self.actions[key])
+	return ret

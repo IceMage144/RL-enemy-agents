@@ -2,7 +2,7 @@ extends Node
 
 const AINode = preload("res://Characters/AIs/AI.tscn")
 const ActionClass = preload("res://Characters/ActionBase.gd")
-const Logger = preload("res://Logger.gd")
+const Logger = preload("res://Structures/Logger.gd")
 
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 const AIType = AIEnums.AIType
@@ -56,6 +56,8 @@ func init(params):
 		"exploration_rate_decay_time": params.exploration_rate_decay_time,
 		"experience_replay": params.experience_replay,
 		"experience_pool_size": params.experience_pool_size,
+		"priority_exponent": params.priority_exponent,
+		"weight_exponent": params.weight_exponent,
 		"num_freeze_iter": params.num_freeze_iter,
 		"think_time": params.think_time,
 		"features_size": Feature.FEATURES_SIZE,
@@ -65,8 +67,9 @@ func init(params):
 		"network_id": params.network_id,
 		"can_save": params.can_save
 	})
-	$ThinkTimer.wait_time = params.think_time
-	$ThinkTimer.start()
+	if params.think_time != 0:
+		$ThinkTimer.wait_time = params.think_time
+		$ThinkTimer.start()
 
 func end():
 	self.ai.end()

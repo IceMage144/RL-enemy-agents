@@ -9,6 +9,8 @@ var min_epsilon
 var epsilon_decay_time
 var use_experience_replay
 var experience_pool_size
+var priority_exponent
+var weight_exponent
 var num_freeze_iter
 var think_time
 var features_size
@@ -35,6 +37,8 @@ func init(params):
 	self.epsilon_decay_time = params["exploration_rate_decay_time"]
 	self.use_experience_replay = params["experience_replay"]
 	self.experience_pool_size = params["experience_pool_size"]
+	self.priority_exponent = params["priority_exponent"]
+	self.weight_exponent = params["weight_exponent"]
 	self.num_freeze_iter = params["num_freeze_iter"]
 	self.think_time = params["think_time"]
 	self.features_size = params["features_size"]
