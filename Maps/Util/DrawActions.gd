@@ -1,50 +1,56 @@
 extends Control
 
-const dir_to_vec = {
-	"up": Vector2(0, -1),
-	"left": Vector2(-1, 0),
-	"down": Vector2(0, 1),
-	"right": Vector2(1, 0)
-}
+const ActionClass = preload("res://Characters/ActionBase.gd")
 
-var player
-var robot
-var botAI
+const movements = [
+	"idle",
+	"death",
+	"walk",
+	"attack"
+]
 
-func _ready():
-	player = global.find_entity("team1")
-	robot = global.find_entity("team2")
-	botAI = robot.get_node("AI")
+const directions = [
+	"",
+	"right",
+	"up_right",
+	"up",
+	"up_left",
+	"left",
+	"down_left",
+	"down",
+	"down_right"
+]
 
-func _process(delta):
-	update()
+var char_ai
+
+var tile_size = 32
+var state = {}
+
+onready var Action = ActionClass.new()
+onready var arena_width = 31 * self.tile_size
+onready var arena_height = 18 * self.tile_size
+
+func init(params):
+	self.char_ai = params.ai
+
+func set_state(state):
+	self.state = state
+	self.update()
 
 func _draw():
-	var state = {
-		"self_pos": Vector2(),
-		"self_life": robot.life,
-		"self_maxlife": robot.max_life,
-		"self_damage": robot.damage,
-		"self_action": robot.action,
-		"self_dir": robot.direction,
-		"player_pos": player.position,
-		"player_life": player.life,
-		"player_maxlife": player.max_life,
-		"player_damage": player.damage,
-		"player_action": player.action,
-		"player_dir": player.direction
-	}
-	for i in range(16, get_viewport().size.x, 64):
-		for j in range(16, get_viewport().size.y, 64):
+	if self.char_ai == null or self.state.size() == 0:
+		return
+	var state = self.state
+	for i in range(3 * tile_size / 2, arena_width, tile_size):
+		for j in range(3 * tile_size / 2, arena_height, tile_size):
 			var pos = Vector2(i, j)
-			state["self_pos"] = pos
-			var action = botAI._compute_action_from_q_values(state)
-			if "walk" in action:
+			state["enemy_pos"] = pos
+			var action = char_ai._compute_action_from_q_values(state)
+			if Action.has(action, Action.WALK):
+				var vec = Action.to_vec(action)
 				draw_rect(Rect2(pos - Vector2(2, 2), Vector2(4, 4)), Color(1, 0, 0))
-				draw_line(pos, pos + 16*dir_to_vec[action[1]], Color(1, 0, 0))
-			elif "attack" in action:
+				draw_line(pos, pos + 16 * vec, Color(1, 0, 0))
+			elif Action.get_movement(action) == Action.ATTACK:
 				draw_rect(Rect2(pos - Vector2(4, 4), Vector2(8, 8)), Color(1, 1, 0))
-			elif "idle" in action:
+			elif Action.get_movement(action) == Action.IDLE:
 				draw_circle(pos, 8, Color(0, 0, 1))
-				
-		

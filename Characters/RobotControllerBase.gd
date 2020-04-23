@@ -47,6 +47,9 @@ func init(params):
 	self.ai = AINode.instance()
 	self.ai.set_script(load(ai_path[params.ai_type]))
 	self.add_child(self.ai)
+	var initial_state = {}
+	if params.think_time != 0:
+		initial_state = self.get_state()
 	self.ai.init({
 		"learning_activated": params.learning_activated,
 		"learning_rate": params.learning_rate,
@@ -61,7 +64,7 @@ func init(params):
 		"num_freeze_iter": params.num_freeze_iter,
 		"think_time": params.think_time,
 		"features_size": Feature.FEATURES_SIZE,
-		"initial_state": self.get_state(),
+		"initial_state": initial_state,
 		"initial_action": Action.IDLE,
 		"character_type": params.character_type,
 		"network_id": params.network_id,
