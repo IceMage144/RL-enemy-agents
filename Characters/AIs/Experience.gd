@@ -45,7 +45,6 @@ func update(pos_list, new_priorities):
 		self.st.update(pos_list[i], new_priorities[i])
 		if new_priorities[i] > self.max_priority:
 			self.max_priority = new_priorities[i]
-	print("max_weight ", self.weight_heap.get_max())
 	return weights
 
 # -> Array{ Array[LeafID], Array[Features], Array[Reward], Array[State], Array[Action] }

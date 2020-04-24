@@ -27,15 +27,15 @@ var tile_size = 32
 var state = {}
 
 onready var Action = ActionClass.new()
-onready var arena_width = 31 * self.tile_size
+onready var arena_width = 26 * self.tile_size
 onready var arena_height = 18 * self.tile_size
-
-func init(params):
-	self.char_ai = params.ai
 
 func set_state(state):
 	self.state = state
 	self.update()
+
+func set_ai(ai):
+	self.char_ai = ai
 
 func _draw():
 	if self.char_ai == null or self.state.size() == 0:

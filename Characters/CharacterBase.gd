@@ -106,8 +106,8 @@ func init(params):
 		# Assert that character will have life
 		assert(params.max_life > 0)
 		self.set_max_life(params.max_life)
-	if params.has("life") and params.life >= 0:
-		self.set_life(min(self.max_life, max(0, params.life)))
+	if params.has("life"):
+		self.set_life(int(clamp(params.life, 0, self.get_max_life())))
 	else:
 		self.set_life(self.max_life)
 	if self.controller_type == Controller.AI:
@@ -151,7 +151,7 @@ func _init_ai_controller(params):
 		"can_save": self.can_save
 	}
 	global.insert_default_keys(params, default_params)
-	self.controller.init(default_params)
+	self.controller.init(params)
 	if GameConfig.get_debug_flag("character") and \
 	  self.controller_type == Controller.AI:
 		$Sprite.modulate = ai_color[self.ai_type]

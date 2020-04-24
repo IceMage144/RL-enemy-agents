@@ -81,6 +81,19 @@ func get_loss():
 	return self.ai.get_loss()
 
 func get_state():
+	var enemy_pos = Vector2()
+	var enemy_life = 0
+	var enemy_maxlife = 1
+	var enemy_damage = 0
+	var enemy_defense = 0
+	var enemy_act = Action.IDLE
+	if self.enemy != null:
+		enemy_pos = self.enemy.position
+		enemy_life = self.enemy.life
+		enemy_maxlife = self.enemy.get_max_life()
+		enemy_damage = self.enemy.get_damage()
+		enemy_defense = self.enemy.get_defense()
+		enemy_act = self.enemy.action
 	return {
 		"self_pos": self.parent.position,
 		"self_life": self.parent.life,
@@ -88,12 +101,12 @@ func get_state():
 		"self_damage": self.parent.get_damage(),
 		"self_defense": self.parent.get_defense(),
 		"self_act": self.parent.action,
-		"enemy_pos": self.enemy.position,
-		"enemy_life": self.enemy.life,
-		"enemy_maxlife": self.enemy.get_max_life(),
-		"enemy_damage": self.enemy.get_damage(),
-		"enemy_defense": self.enemy.get_defense(),
-		"enemy_act": self.enemy.action
+		"enemy_pos": enemy_pos,
+		"enemy_life": enemy_life,
+		"enemy_maxlife": enemy_maxlife,
+		"enemy_damage": enemy_damage,
+		"enemy_defense": enemy_defense,
+		"enemy_act": enemy_act
 	}
 
 func get_reward(last_state, new_state, timeout):

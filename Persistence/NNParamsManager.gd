@@ -35,3 +35,7 @@ func set_params(key, value):
 	self.set_data(PARAMS, params_dict)
 	if GameConfig.get_debug_flag("persistence"):
 		print("Saved " + key + " params")
+
+func get_keys_list():
+	var params_dict = self.get_data(PARAMS)
+	return params_dict.keys()

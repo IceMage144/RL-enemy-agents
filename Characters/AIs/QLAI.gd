@@ -31,7 +31,6 @@ func init(params):
 	self.learning_activated = params["learning_activated"]
 	self.alpha = params["learning_rate"]
 	self.discount = params["discount"]
-	self.epsilon = params["max_exploration_rate"]
 	self.max_epsilon = params["max_exploration_rate"]
 	self.min_epsilon = params["min_exploration_rate"]
 	self.epsilon_decay_time = params["exploration_rate_decay_time"]
@@ -45,6 +44,7 @@ func init(params):
 	self.last_state = params["initial_state"]
 	self.last_action = params["initial_action"]
 	self.can_save = params["can_save"]
+	self.epsilon = self.max_epsilon
 
 func reset(timeout):
 	self.last_state = self.parent.get_state()
@@ -113,7 +113,7 @@ func _is_freezing_weights():
 	return self.num_freeze_iter > 1
 
 func _update_epsilon():
-	if not self.epsilon_decay_time:
+	if self.epsilon_decay_time == 0.0:
 		self.epsilon = self.min_epsilon
 	else:
 		var factor = min(self.time, self.epsilon_decay_time) / self.epsilon_decay_time

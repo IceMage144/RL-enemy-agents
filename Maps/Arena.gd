@@ -11,8 +11,8 @@ var rounds = 0
 var last_round = 11
 var scores = {}
 
-onready var arena_width = 27 * self.tile_size
-onready var arena_height = 13 * self.tile_size
+onready var arena_width = 28 * self.tile_size
+onready var arena_height = 15 * self.tile_size
 
 func _ready():
 	var characters = self.get_tree().get_nodes_in_group("character")

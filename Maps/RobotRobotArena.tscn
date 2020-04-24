@@ -23,7 +23,6 @@ exploration_rate_decay_time = 80.0
 priority_exponent = 0.6
 weight_exponent = 0.8
 experience_pool_size = 200
-num_freeze_iter = 1
 
 [node name="Goblin2" parent="Wall" index="1" groups=[
 "team2",

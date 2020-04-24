@@ -6,10 +6,16 @@ const ActionClass = preload("res://Characters/ActionBase.gd")
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 const Feature = AIEnums.BTFeature
 
+var epsilon
+var max_epsilon
+var min_epsilon
+var epsilon_decay_time
 var think_time
 var last_action
 var last_state
 var bt
+
+var time = 0.0
 
 onready var Action = ActionClass.new()
 onready var parent = self.get_parent()
@@ -18,6 +24,10 @@ func init(params):
 	self.think_time = params["think_time"]
 	self.last_state = params["initial_state"]
 	self.last_action = params["initial_action"]
+	self.max_epsilon = params["max_exploration_rate"]
+	self.min_epsilon = params["min_exploration_rate"]
+	self.epsilon_decay_time = params["exploration_rate_decay_time"]
+	self.epsilon = self.max_epsilon
 
 func end():
 	pass
@@ -59,10 +69,22 @@ func _get_features(state):
 	}
 
 func update_state(state, last=false, timeout=false):
+	self.time += self.think_time
 	var features = self._get_features(state)
 	var legal_actions = self.parent.get_legal_actions(state)
-	self.last_action = self.bt.get_action(features, legal_actions)
+	if randf() < self.epsilon:
+		self.last_action = global.choose_one(legal_actions)
+	else:
+		self.last_action = self.bt.get_action(features, legal_actions)
 	self.last_state = state
+	self._update_epsilon()
+
+func _update_epsilon():
+	if self.epsilon_decay_time == 0.0:
+		self.epsilon = self.min_epsilon
+	else:
+		var factor = min(self.time, self.epsilon_decay_time) / self.epsilon_decay_time
+		self.epsilon = factor * self.min_epsilon + (1.0 - factor) * self.max_epsilon
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():

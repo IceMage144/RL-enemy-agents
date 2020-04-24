@@ -32,9 +32,9 @@ func get_features_after_action(state, action):
 	out[Feature.ENEMY_DIR_Y] = enemy_dir_vec.y
 	out[Feature.BIAS] = 1.0
 
-	var damage_chance = inverse_lerp(MIN_ATTACK_RANGE, MAX_ATTACK_RANGE,
+	var damage_chance = inverse_lerp(MAX_ATTACK_RANGE, MIN_ATTACK_RANGE,
 									 out[Feature.ENEMY_DIST])
-	damage_chance = clamp(0.0, 1.0, damage_chance)
+	damage_chance = clamp(damage_chance, 0.0, 1.0)
 
 	if self_mov == Action.WALK:
 		var transform = Transform2D(0.0, state.self_pos)
