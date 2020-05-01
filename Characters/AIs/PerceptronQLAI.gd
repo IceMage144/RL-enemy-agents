@@ -15,7 +15,7 @@ var learning_weights = []
 func init(params):
 	.init(params)
 	# TODO: PerceptronQLAI não está usando experience replay
-	self.ep = Experience.new(self.experience_pool_size)
+	self.ep = Experience.new(self.experience_sample_size)
 	if params.has("network_id") and params.network_id != null:
 		var character_type = params.character_type
 		var network_id = params.network_id

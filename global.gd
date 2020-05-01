@@ -32,7 +32,8 @@ func get_enemy(entity):
 	for team in TEAMS:
 		if team != entity_team:
 			for enemy in get_tree().get_nodes_in_group(team):
-				enemies.append(enemy)
+				if not enemy.is_dead():
+					enemies.append(enemy)
 	var closest_enemy = null
 	var min_dist = INF
 	for enemy in enemies:

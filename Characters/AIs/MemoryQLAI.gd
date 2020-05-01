@@ -18,7 +18,7 @@ var seq_size = 4
 # Dict -> void
 func init(params):
 	.init(params)
-	self.ep = Experience.new(self.experience_pool_size, self.seq_size)
+	self.ep = Experience.new(self.experience_sample_size, self.seq_size)
 	if params.has("network_id") and params.network_id != null:
 		var character_type = params.character_type
 		var network_id = params.network_id

@@ -23,7 +23,7 @@ max_exploration_rate = 1.0
 min_exploration_rate = 0.3
 exploration_rate_decay_time = 0.0
 experience_replay = false
-experience_pool_size = 40
+experience_sample_size = 40
 think_time = 0.2
 
 [node name="GoblinP" type="Node" parent="." index="1"]
@@ -42,7 +42,7 @@ max_exploration_rate = 1.0
 min_exploration_rate = 0.3
 exploration_rate_decay_time = 0.0
 experience_replay = false
-experience_pool_size = 40
+experience_sample_size = 40
 think_time = 0.2
 
 [node name="Spider" type="Node" parent="." index="2"]
@@ -61,7 +61,7 @@ max_exploration_rate = 1.0
 min_exploration_rate = 0.3
 exploration_rate_decay_time = 0.0
 experience_replay = false
-experience_pool_size = 40
+experience_sample_size = 40
 think_time = 0.2
 
 [node name="SpiderP" type="Node" parent="." index="3"]
@@ -80,7 +80,7 @@ max_exploration_rate = 1.0
 min_exploration_rate = 0.3
 exploration_rate_decay_time = 0.0
 experience_replay = false
-experience_pool_size = 40
+experience_sample_size = 40
 think_time = 0.2
 
 [node name="Slime" type="Node" parent="." index="4"]
@@ -99,7 +99,7 @@ max_exploration_rate = 1.0
 min_exploration_rate = 0.3
 exploration_rate_decay_time = 0.0
 experience_replay = false
-experience_pool_size = 40
+experience_sample_size = 40
 think_time = 0.2
 
 

@@ -1,5 +1,7 @@
 extends Node
 
+const ActionClass = preload("res://Characters/ActionBase.gd")
+
 var learning_activated
 var alpha
 var discount
@@ -8,7 +10,9 @@ var max_epsilon
 var min_epsilon
 var epsilon_decay_time
 var use_experience_replay
-var experience_pool_size
+var use_prioritization
+var experience_sample_size
+var experience_size_limit
 var priority_exponent
 var weight_exponent
 var num_freeze_iter
@@ -22,6 +26,7 @@ var network_key = null
 var iter = 0
 var time = 0.0
 
+onready var Action = ActionClass.new()
 onready var parent = self.get_parent()
 
 func _ready():
@@ -35,7 +40,9 @@ func init(params):
 	self.min_epsilon = params["min_exploration_rate"]
 	self.epsilon_decay_time = params["exploration_rate_decay_time"]
 	self.use_experience_replay = params["experience_replay"]
-	self.experience_pool_size = params["experience_pool_size"]
+	self.use_prioritization = params["prioritization"]
+	self.experience_sample_size = params["experience_sample_size"]
+	self.experience_size_limit = params["experience_size_limit"]
 	self.priority_exponent = params["priority_exponent"]
 	self.weight_exponent = params["weight_exponent"]
 	self.num_freeze_iter = params["num_freeze_iter"]
@@ -78,7 +85,7 @@ func get_action():
 	return self.last_action
 
 func update_state(state, last=false, timeout=false):
-	if self.learning_activated:
+	if self.learning_activated and self.last_state.has_enemy:
 		self.time += self.think_time
 		var reward = self.parent.get_reward(self.last_state, state, timeout)
 		self._update_weights(self.last_state, self.last_action, state, reward, last)
@@ -86,7 +93,9 @@ func update_state(state, last=false, timeout=false):
 		if self.iter == 0 and self._is_freezing_weights():
 			self._freeze_weights()
 
-	self.last_action = self._compute_action_from_q_values(state)
+	self.last_action = Action.compose(Action.IDLE, self.last_action)
+	if state.has_enemy:
+		self.last_action = self._compute_action_from_q_values(state)
 	self.last_state = state
 	
 	self._update_epsilon()

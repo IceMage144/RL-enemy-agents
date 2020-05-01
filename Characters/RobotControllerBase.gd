@@ -17,7 +17,6 @@ const ai_path = {
 }
 
 var ai
-var enemy
 var tm
 var parent
 var velocity = Vector2()
@@ -38,7 +37,6 @@ func _is_aligned(act, vec):
 
 func _ready():
 	self.parent = self.get_parent()
-	self.enemy = global.get_enemy(self.parent)
 	self.tm = global.find_entity("floor")
 	if GameConfig.get_debug_flag("character"):
 		$DebugTimer.start()
@@ -47,9 +45,7 @@ func init(params):
 	self.ai = AINode.instance()
 	self.ai.set_script(load(ai_path[params.ai_type]))
 	self.add_child(self.ai)
-	var initial_state = {}
-	if params.think_time != 0:
-		initial_state = self.get_state()
+	var initial_state = self.get_state()
 	self.ai.init({
 		"learning_activated": params.learning_activated,
 		"learning_rate": params.learning_rate,
@@ -58,7 +54,9 @@ func init(params):
 		"min_exploration_rate": params.min_exploration_rate,
 		"exploration_rate_decay_time": params.exploration_rate_decay_time,
 		"experience_replay": params.experience_replay,
-		"experience_pool_size": params.experience_pool_size,
+		"prioritization": params.prioritization,
+		"experience_sample_size": params.experience_sample_size,
+		"experience_size_limit": params.experience_size_limit,
 		"priority_exponent": params.priority_exponent,
 		"weight_exponent": params.weight_exponent,
 		"num_freeze_iter": params.num_freeze_iter,
@@ -70,7 +68,7 @@ func init(params):
 		"network_id": params.network_id,
 		"can_save": params.can_save
 	})
-	if params.think_time != 0:
+	if params.think_time != 0.0:
 		$ThinkTimer.wait_time = params.think_time
 		$ThinkTimer.start()
 
@@ -87,13 +85,15 @@ func get_state():
 	var enemy_damage = 0
 	var enemy_defense = 0
 	var enemy_act = Action.IDLE
-	if self.enemy != null:
-		enemy_pos = self.enemy.position
-		enemy_life = self.enemy.life
-		enemy_maxlife = self.enemy.get_max_life()
-		enemy_damage = self.enemy.get_damage()
-		enemy_defense = self.enemy.get_defense()
-		enemy_act = self.enemy.action
+	var enemy = global.get_enemy(self.parent)
+	var has_enemy = enemy != null
+	if has_enemy:
+		enemy_pos = enemy.position
+		enemy_life = enemy.life
+		enemy_maxlife = enemy.get_max_life()
+		enemy_damage = enemy.get_damage()
+		enemy_defense = enemy.get_defense()
+		enemy_act = enemy.action
 	return {
 		"self_pos": self.parent.position,
 		"self_life": self.parent.life,
@@ -106,31 +106,27 @@ func get_state():
 		"enemy_maxlife": enemy_maxlife,
 		"enemy_damage": enemy_damage,
 		"enemy_defense": enemy_defense,
-		"enemy_act": enemy_act
+		"enemy_act": enemy_act,
+		"has_enemy": has_enemy
 	}
 
 func get_reward(last_state, new_state, timeout):
 	# "As a general rule, it is better to design performance measures according
 	# to what one actually wants in the environment, rather than according to
 	# how one thinks the agent should behave"
-	if Action.get_movement(last_state.enemy_act) == Action.DEATH or \
-	   new_state.enemy_life == 0:
+	if not new_state.has_enemy or new_state.enemy_life == 0:
 		return 1.0
 
-	if Action.get_movement(last_state.self_act) == Action.DEATH or \
-	   new_state.self_life == 0 or timeout:
+	if new_state.self_life == 0 or timeout:
 		return -1.0
 
-	# CAUTION: Needs normalization if damage per think is too high
-	var self_life_dif = last_state.self_life - new_state.self_life
-	var enemy_life_dif = last_state.enemy_life - new_state.enemy_life
+	var self_life_dif = float(last_state.self_life - new_state.self_life)
+	var enemy_life_dif = float(last_state.enemy_life - new_state.enemy_life)
 
 	# Range: [-1.0, 0.0]
 	# return - float(self_life_dif) / last_state.self_life
 	# Range: [-1.0, 1.0]
-	return float(enemy_life_dif) / last_state.enemy_life - float(self_life_dif) / last_state.self_life
-	# Range: [-7.5, 2.5]
-	# return 0.5 * (enemy_life_dif - self_life_dif) - 0.25
+	return enemy_life_dif / last_state.enemy_life - self_life_dif / last_state.self_life
 
 # Abstract
 func get_legal_actions(state):

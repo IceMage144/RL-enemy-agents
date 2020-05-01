@@ -107,7 +107,7 @@ exploration_rate_decay_time = 0.0
 experience_replay = false
 priority_exponent = 0.0
 weight_exponent = 0.0
-experience_pool_size = 40
+experience_sample_size = 40
 num_freeze_iter = 1
 think_time = 0.1
 

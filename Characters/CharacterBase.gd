@@ -7,7 +7,8 @@ const ActionClass = preload("res://Characters/ActionBase.gd")
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 const AIType = AIEnums.AIType
 
-signal character_death
+signal character_death # begin death animation
+signal character_died # end death animation
 
 enum Controller { PLAYER, AI }
 
@@ -45,9 +46,11 @@ export(float, 0.0, 1.0, 0.001) var max_exploration_rate = 1.0
 export(float, 0.0, 1.0, 0.001) var min_exploration_rate = 0.0
 export(float) var exploration_rate_decay_time = 0.0
 export(bool) var experience_replay = false
+export(bool) var prioritization = false
 export(float, 0.0, 1.0) var priority_exponent = 0.0
 export(float, 0.0, 1.0) var weight_exponent = 0.0
-export(int) var experience_pool_size = 40
+export(int) var experience_sample_size = 40
+export(int) var experience_size_limit = 400
 export(int) var num_freeze_iter = 1
 export(float) var think_time = 0.1
 
@@ -141,7 +144,9 @@ func _init_ai_controller(params):
 		"min_exploration_rate": self.min_exploration_rate,
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
 		"experience_replay": self.experience_replay,
-		"experience_pool_size": self.experience_pool_size,
+		"prioritization": self.prioritization,
+		"experience_sample_size": self.experience_sample_size,
+		"experience_size_limit": self.experience_size_limit,
 		"priority_exponent": self.priority_exponent,
 		"weight_exponent": self.weight_exponent,
 		"num_freeze_iter": self.num_freeze_iter,
@@ -185,11 +190,12 @@ func get_defense():
 	return self.defense
 
 func set_life(new_life):
-	self.life = min(self.max_life, max(0, new_life))
+	self.life = clamp(new_life, 0, self.max_life)
 	$LifeBar.value = self.life
 	if self.life == 0:
 		self.set_action(Action.DEATH)
 		$CollisionPolygon2D.disabled = true
+		self.emit_signal("character_death")
 
 func add_life(amount):
 	self.set_life(self.life + amount)
@@ -221,7 +227,7 @@ func is_process_action(action):
 
 func die():
 	self.end()
-	self.emit_signal("character_death")
+	self.emit_signal("character_died")
 
 func is_dead():
 	return Action.get_movement(self.action) == Action.DEATH
