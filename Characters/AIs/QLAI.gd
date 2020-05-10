@@ -31,6 +31,14 @@ onready var parent = self.get_parent()
 
 func _ready():
 	self.add_to_group("has_arch")
+	self.parent.logger.push_metadata("analysis", "order",
+		["pos_x_diff", "pos_y_diff", "enemy_dist", "self_life",
+		 "enemy_life", "enemy_attacking", "enemy_dir_x",
+		 "enemy_dir_y", "terminal", "idle_q", "attack_q",
+		 "walk_right_q", "walk_up_right_q", "walk_up_q",
+		 "walk_up_left_q", "walk_left_q", "walk_down_left_q",
+		 "walk_down_q", "walk_down_right_q", "reward",
+		 "next_val", "priority", "time", "exp_id", "replay"])
 
 func init(params):
 	self.learning_activated = params["learning_activated"]

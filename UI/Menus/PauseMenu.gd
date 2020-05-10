@@ -8,6 +8,6 @@ func _process(_delta):
 		get_tree().paused = false
 		self.queue_free()
 
-func _on_SaveArch_pressed():
-	for ai in get_tree().get_nodes_in_group("has_arch"):
-		ai.end()
+func _on_SaveData_pressed():
+	for ai in get_tree().get_nodes_in_group("produce_analysis"):
+		ai.save_analysis()

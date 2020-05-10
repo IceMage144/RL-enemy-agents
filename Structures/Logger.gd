@@ -1,11 +1,17 @@
 extends Object
 
 var table = {}
+var meta_table = {}
 
 func push(name, val):
 	if not self.table.has(name):
 		self.table[name] = []
 	self.table[name].append(val)
+
+func push_metadata(name, key, data):
+	if not self.meta_table.has(name):
+		self.meta_table[name] = {}
+	self.meta_table[name][key] = data
 
 func avg(name):
 	if not self.table.has(name) or self.table[name].size() == 0:
@@ -45,3 +51,48 @@ func get_stored(name):
 	if not self.table.has(name):
 		return []
 	return self.table[name]
+
+func get_metadata(name, key, default=null):
+	if not self.meta_table.has(name) or not self.meta_table[name].has(key):
+		return default
+	return self.meta_table[name][key]
+
+func save_to_csv(name, file_name):
+	var save_file = File.new()
+	file_name = "res://assets/scripts/data/" + file_name
+	if save_file.file_exists(file_name + ".csv"):
+		var idx = 0
+		var new_file_name = file_name
+		while save_file.file_exists(new_file_name + ".csv"):
+			idx += 1
+			new_file_name = file_name + "(" + str(idx) + ")"
+		file_name = new_file_name
+	file_name = file_name + ".csv"
+
+	save_file.open(file_name, File.WRITE)
+	var data = self.get_stored(name)
+
+	var order = self.get_metadata(name, "order", [])
+	if data.size() != 0 and order.size() != data[0].size():
+		order = data[0].keys()
+
+	var header = ""
+	for i in range(order.size()):
+		header = header + str(order[i])
+		if i != order.size() - 1:
+			header = header + ","
+	save_file.store_line(header)
+
+	for el in data:
+		# Assert that values are dictionaries
+		assert(typeof(el) == TYPE_DICTIONARY)
+		var line = ""
+		for i in range(order.size()):
+			line = line + str(el[order[i]])
+			if i != order.size() - 1:
+				line = line + ","
+		save_file.store_line(line)
+
+	save_file.close()
+	if GameConfig.get_debug_flag("persistence"):
+		print("Saved " + name + " values into file " + file_name)

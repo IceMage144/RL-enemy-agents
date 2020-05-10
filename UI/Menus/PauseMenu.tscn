@@ -4,18 +4,18 @@
 [ext_resource path="res://UI/Menus/PauseMenu.gd" type="Script" id=2]
 [ext_resource path="res://UI/Elements/BigBorderlessButton.tscn" type="PackedScene" id=3]
 
-[node name="PauseMenu" instance=ExtResource( 1 )]
+[node name="PauseMenu" index="0" instance=ExtResource( 1 )]
 
 script = ExtResource( 2 )
 
-[node name="SaveArch" parent="Content" index="0" instance=ExtResource( 3 )]
+[node name="SaveData" parent="Content" index="0" instance=ExtResource( 3 )]
 
-margin_left = 446.0
-margin_top = 322.0
-margin_right = 638.0
-margin_bottom = 364.0
-text = "Save arch"
+margin_left = 439.0
+margin_top = 285.0
+margin_right = 631.0
+margin_bottom = 327.0
+text = "Save data"
 
-[connection signal="pressed" from="Content/SaveArch" to="." method="_on_SaveArch_pressed"]
+[connection signal="pressed" from="Content/SaveData" to="." method="_on_SaveData_pressed"]
 
 

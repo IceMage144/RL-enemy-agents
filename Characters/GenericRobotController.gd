@@ -25,8 +25,8 @@ func get_features_after_action(state, action):
 	out[Feature.POS_X_DIFF] = pos_diff.x
 	out[Feature.POS_Y_DIFF] = pos_diff.y
 	out[Feature.ENEMY_DIST] = state.self_pos.distance_to(state.enemy_pos)
-	out[Feature.SELF_LIFE] = state.self_life / state.self_maxlife
-	out[Feature.ENEMY_LIFE] = state.enemy_life / state.enemy_maxlife
+	out[Feature.SELF_LIFE] = state.self_life
+	out[Feature.ENEMY_LIFE] = state.enemy_life
 	out[Feature.ENEMY_ATTACKING] = 2.0 * float(enemy_mov == Action.ATTACK) - 1.0
 	out[Feature.ENEMY_DIR_X] = enemy_dir_vec.x
 	out[Feature.ENEMY_DIR_Y] = enemy_dir_vec.y
@@ -53,6 +53,8 @@ func get_features_after_action(state, action):
 		out[Feature.SELF_LIFE] -= state.enemy_damage * damage_chance
 
 	var diag = self.get_viewport().size.length()
+	out[Feature.SELF_LIFE] /= state.self_maxlife
+	out[Feature.ENEMY_LIFE] /= state.enemy_maxlife
 	out[Feature.POS_X_DIFF] = (out[Feature.POS_X_DIFF] - self_dir_vec.x) / diag
 	out[Feature.POS_Y_DIFF] = (out[Feature.POS_Y_DIFF] - self_dir_vec.y) / diag
 	out[Feature.ENEMY_DIST] /= diag

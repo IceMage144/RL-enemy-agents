@@ -5,7 +5,7 @@
 [ext_resource path="res://Maps/BasicTileset.tres" type="TileSet" id=3]
 [ext_resource path="res://Characters/Goblin/Goblin.tscn" type="PackedScene" id=4]
 
-[node name="RobotRobotTest" index="0" instance=ExtResource( 1 )]
+[node name="RobotRobotTest" instance=ExtResource( 1 )]
 
 script = ExtResource( 2 )
 
@@ -20,11 +20,12 @@ tile_data = PoolIntArray( 0, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0, 4, 1, 0, 5, 1, 0, 
 
 position = Vector2( 186.547, 143.876 )
 learning_rate = 0.001
-exploration_rate_decay_time = 100.0
+exploration_rate_decay_time = 2000.0
 prioritization = true
 priority_exponent = 0.6
 weight_exponent = 0.7
-experience_size_limit = 600
+experience_sample_size = 1000
+experience_size_limit = -1
 num_freeze_iter = 10
 
 [node name="Goblin2" parent="Wall" index="1" groups=[
@@ -33,9 +34,10 @@ num_freeze_iter = 10
 
 position = Vector2( 113.719, 142.853 )
 learning_rate = 0.001
-exploration_rate_decay_time = 100.0
+exploration_rate_decay_time = 2000.0
 prioritization = false
-experience_size_limit = 600
+experience_sample_size = 1000
+experience_size_limit = -1
 num_freeze_iter = 10
 
 [node name="TimeoutTimer" type="Timer" parent="." index="3"]

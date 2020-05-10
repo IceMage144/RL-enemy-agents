@@ -57,7 +57,7 @@ conditional = 4
 left_variable = 14
 left_coefficient = 1.0
 left_const = 0.0
-right_variable = 40.0
+right_variable = 30.0
 
 [node name="Attack" type="Node" parent="BehaviorTree/BehaviorSelector/AttackBranch" index="1"]
 

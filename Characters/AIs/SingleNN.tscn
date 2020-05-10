@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://addons/brain-lib/NeuralNetwork1DAdam.gd" type="Script" id=1]
+[ext_resource path="res://addons/brain-lib/NeuralNetwork1DGradientDescent.gd" type="Script" id=1]
 [ext_resource path="res://addons/brain-lib/icons/nn1d_adam.png" type="Texture" id=2]
 [ext_resource path="res://addons/brain-lib/FullyConnected.gd" type="Script" id=3]
 [ext_resource path="res://addons/brain-lib/icons/fc.png" type="Texture" id=4]
@@ -16,8 +16,7 @@ __meta__ = {
 input_size = 7
 loss_func = null
 learning_rate = 0.01
-beta1 = 0.9
-beta2 = 0.999
+weight_decay = 0.0
 
 [node name="FullyConnected" type="Node" parent="." index="0"]
 
