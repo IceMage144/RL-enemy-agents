@@ -65,8 +65,8 @@ var network_id = null
 var knockback = Vector2()
 var invulnerable = false
 
-onready var anim_node = $Sprite/AnimationPlayer
 onready var Action = ActionClass.new()
+onready var anim_node = $Sprite/AnimationPlayer
 onready var life = self.max_life
 onready var character_type = self.get_script().get_path().get_file().get_basename()
 onready var team = global.get_team(self)
@@ -279,3 +279,31 @@ func _on_AttackArea_area_entered(area):
 func _on_DamageBlinkTimer_timeout():
 	$Sprite.material.set_shader_param("active", false)
 	self.invulnerable = false
+
+func get_info():
+	return {
+		"type": self.character_type,
+		"network_id": self.network_id,
+		"team": self.team,
+		"speed": self.speed,
+		"weight": self.weight,
+		"max_life": self.max_life,
+		"damage": self.damage,
+		"defense": self.defense,
+		"controller_type": self.controller_type,
+		"ai_type": self.ai_type,
+		"learning_activated": self.learning_activated,
+		"learning_rate": self.learning_rate,
+		"discount": self.discount,
+		"max_exploration_rate": self.max_exploration_rate,
+		"min_exploration_rate": self.min_exploration_rate,
+		"exploration_rate_decay_time": self.exploration_rate_decay_time,
+		"experience_replay": self.experience_replay,
+		"prioritization": self.prioritization,
+		"priority_exponent": self.priority_exponent,
+		"weight_exponent": self.weight_exponent,
+		"experience_sample_size": self.experience_sample_size,
+		"experience_size_limit": self.experience_size_limit,
+		"num_freeze_iter": self.num_freeze_iter,
+		"think_time": self.think_time
+	}

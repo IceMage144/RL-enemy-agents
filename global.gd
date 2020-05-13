@@ -200,15 +200,34 @@ func rand_argmax(array):
 			idxs.append(i)
 	return idxs[randi_range(0, len(idxs) - 1)]
 
+func can_be_int(num):
+	return int(num) == num
+
+func to_int_rec(el):
+	if typeof(el) == TYPE_REAL and self.can_be_int(el):
+		return int(el)
+	elif typeof(el) == TYPE_ARRAY:
+		for i in range(el.size()):
+			el[i] = self.to_int_rec(el[i])
+	elif typeof(el) == TYPE_DICTIONARY:
+		for k in el.keys():
+			el[k] = self.to_int_rec(el[k])
+	return el
+
+func read_json(file_path, default={}):
+	var file = File.new()
+	var data = default
+	if file.file_exists(file_path):
+		file.open(file_path, file.READ)
+		var ret = JSON.parse(file.get_as_text())
+		if ret.error == OK:
+			data = ret.result
+		file.close()
+	return data
+
 func save_info(nodes):
 	var saveFile = File.new()
-	var saveInfo = []
-	if saveFile.file_exists(SAVE_PATH):
-		saveFile.open(SAVE_PATH, saveFile.READ)
-		saveInfo = JSON.parse(saveFile.get_as_text()).result
-		saveFile.close()
-	else:
-		saveInfo = []
+	var saveInfo = self.read_json(SAVE_PATH, [])
 
 	var newInfos = {}
 	for node in nodes:
@@ -238,3 +257,6 @@ func normalize(array):
 	var norm = self.norm(array)
 	for i in range(array.size()):
 		array[i] /= norm
+
+func get_character_class(char_name):
+	return load("res://Characters/%s/%s.tscn" % [char_name, char_name])

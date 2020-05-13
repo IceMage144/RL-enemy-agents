@@ -59,15 +59,8 @@ func get_metadata(name, key, default=null):
 
 func save_to_csv(name, file_name):
 	var save_file = File.new()
-	file_name = "res://assets/scripts/data/" + file_name
-	if save_file.file_exists(file_name + ".csv"):
-		var idx = 0
-		var new_file_name = file_name
-		while save_file.file_exists(new_file_name + ".csv"):
-			idx += 1
-			new_file_name = file_name + "(" + str(idx) + ")"
-		file_name = new_file_name
-	file_name = file_name + ".csv"
+	file_name = self.find_unused_file_name("res://assets/scripts/data/" + file_name,
+										   ".csv")
 
 	save_file.open(file_name, File.WRITE)
 	var data = self.get_stored(name)
@@ -88,11 +81,47 @@ func save_to_csv(name, file_name):
 		assert(typeof(el) == TYPE_DICTIONARY)
 		var line = ""
 		for i in range(order.size()):
-			line = line + str(el[order[i]])
+			var str_var
+			if typeof(el[order[i]]) == TYPE_REAL:
+				str_var = "%.12f" % el[order[i]]
+			else:
+				str_var = str(el[order[i]])
+			line = line + str_var
 			if i != order.size() - 1:
 				line = line + ","
 		save_file.store_line(line)
-
 	save_file.close()
+
 	if GameConfig.get_debug_flag("persistence"):
 		print("Saved " + name + " values into file " + file_name)
+
+func save_to_json(name, file_name):
+	var save_file = File.new()
+	file_name = self.find_unused_file_name("res://assets/scripts/data/" + file_name,
+										   ".json")
+	save_file.open(file_name, File.WRITE)
+
+	var table = {}
+	for el in self.get_stored(name):
+		# Assert that values are arrays
+		assert(typeof(el) == TYPE_ARRAY)
+		# Assert that first elements are strings
+		assert(typeof(el[0]) == TYPE_STRING)
+		table[el[0]] = el[1]
+
+	save_file.store_string(JSON.print(table, " "))
+	save_file.close()
+
+	if GameConfig.get_debug_flag("persistence"):
+		print("Saved " + name + " values into file " + file_name)
+
+func find_unused_file_name(file_name, extension):
+	var save_file = File.new()
+	if save_file.file_exists(file_name + extension):
+		var idx = 0
+		var new_file_name = file_name
+		while save_file.file_exists(new_file_name + extension):
+			idx += 1
+			new_file_name = file_name + "(" + str(idx) + ")"
+		file_name = new_file_name
+	return file_name + extension
