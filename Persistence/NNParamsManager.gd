@@ -25,6 +25,8 @@ func _get_model():
 
 func get_params(key):
 	var params_dict = self.get_data(PARAMS)
+	if GameConfig.get_debug_flag("persistence"):
+		print("Loaded " + key + " params")
 	if not params_dict.has(key):
 		return null
 	return params_dict[key]
@@ -39,3 +41,6 @@ func set_params(key, value):
 func get_keys_list():
 	var params_dict = self.get_data(PARAMS)
 	return params_dict.keys()
+
+func clear_models():
+	self.set_data(PARAMS, {})

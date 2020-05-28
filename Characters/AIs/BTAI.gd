@@ -20,6 +20,9 @@ var time = 0.0
 onready var Action = ActionClass.new()
 onready var parent = self.get_parent()
 
+func _exit_tree():
+	Action.free()
+
 func init(params):
 	self.think_time = params["think_time"]
 	self.last_state = params["initial_state"]
@@ -43,6 +46,9 @@ func get_action():
 
 func get_info():
 	return []
+
+func get_features_names():
+	return Feature.keys()
 
 func _get_features(state):
 	var self_dir = Action.to_vec(state["self_act"])

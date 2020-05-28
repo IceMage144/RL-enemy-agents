@@ -41,24 +41,24 @@ func _ready():
 		 "next_val", "priority", "time", "exp_id", "replay"])
 
 func init(params):
-	self.learning_activated = params["learning_activated"]
-	self.alpha = params["learning_rate"]
-	self.discount = params["discount"]
-	self.max_epsilon = params["max_exploration_rate"]
-	self.min_epsilon = params["min_exploration_rate"]
-	self.epsilon_decay_time = params["exploration_rate_decay_time"]
-	self.use_experience_replay = params["experience_replay"]
-	self.use_prioritization = params["prioritization"]
-	self.experience_sample_size = params["experience_sample_size"]
-	self.experience_size_limit = params["experience_size_limit"]
-	self.priority_exponent = params["priority_exponent"]
-	self.weight_exponent = params["weight_exponent"]
-	self.num_freeze_iter = params["num_freeze_iter"]
-	self.think_time = params["think_time"]
-	self.features_size = params["features_size"]
-	self.last_state = params["initial_state"]
-	self.last_action = params["initial_action"]
-	self.can_save = params["can_save"]
+	self.learning_activated = params.learning_activated
+	self.alpha = params.learning_rate
+	self.discount = params.discount
+	self.max_epsilon = params.max_exploration_rate
+	self.min_epsilon = params.min_exploration_rate
+	self.epsilon_decay_time = params.exploration_rate_decay_time
+	self.use_experience_replay = params.experience_replay
+	self.use_prioritization = params.prioritization
+	self.experience_sample_size = params.experience_sample_size
+	self.experience_size_limit = params.experience_size_limit
+	self.priority_exponent = params.priority_exponent
+	self.weight_exponent = params.weight_exponent
+	self.num_freeze_iter = params.num_freeze_iter
+	self.think_time = params.think_time
+	self.features_size = params.features_size
+	self.last_state = params.initial_state
+	self.last_action = params.initial_action
+	self.can_save = params.can_save
 	self.epsilon = self.max_epsilon
 
 func reset(timeout):
@@ -107,6 +107,10 @@ func update_state(state, last=false, timeout=false):
 	self.last_state = state
 	
 	self._update_epsilon()
+
+# Abstract
+func get_features_names():
+	pass
 
 # Abstract
 func _compute_action_from_q_values(state):

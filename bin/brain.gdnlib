@@ -7,7 +7,9 @@ symbol_prefix="godot_"
 [entry]
 
 X11.64="res://bin/x11/libbrain.so"
+Server.64="res://bin/x11/libbrain.so"
 
 [dependencies]
 
 X11.64=[]
+Server.64=[]

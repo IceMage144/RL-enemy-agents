@@ -17,6 +17,9 @@ var freezed_model
 func _ready():
 	self.add_to_group("produce_analysis")
 
+func _exit_tree():
+	self.ep.free()
+
 # Dict -> void
 func init(params):
 	.init(params)
@@ -50,8 +53,9 @@ func end():
 	})
 
 # -> void
-func save_analysis():
-	self.parent.logger.save_to_csv("analysis", self.network_key)
+func save_analysis(dir_base):
+	var file_path = "%s/%s" % [dir_base, self.network_key]
+	self.parent.logger.save_to_csv("analysis", file_path)
 
 # -> void
 func get_info():
@@ -65,6 +69,9 @@ func reset(timeout):
 		self._update_weights_experience(exp_sample[1], exp_sample[2],
 										exp_sample[3], exp_sample[0],
 										exp_sample[5])
+
+func get_features_names():
+	return Feature.keys()
 
 # NeuralNetwork -> void
 func _init_model(model):

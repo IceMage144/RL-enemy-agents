@@ -5,12 +5,13 @@
 [ext_resource path="res://Maps/BasicTileset.tres" type="TileSet" id=3]
 [ext_resource path="res://Characters/Goblin/Goblin.tscn" type="PackedScene" id=4]
 
-[node name="RobotRobotTest" instance=ExtResource( 1 )]
+[node name="RobotRobotTest" index="0" instance=ExtResource( 1 )]
 
 script = ExtResource( 2 )
 use_config = true
-num_rounds = 10
-num_runs = 10
+num_rounds = 5
+num_runs = 3
+timeout_time = 20
 
 [node name="Floor" parent="." index="1"]
 
@@ -48,7 +49,7 @@ num_freeze_iter = 10
 process_mode = 1
 wait_time = 20.0
 one_shot = false
-autostart = true
+autostart = false
 
 [connection signal="timeout" from="TimeoutTimer" to="." method="_on_TimeoutTimer_timeout"]
 

@@ -1,5 +1,7 @@
 extends Node2D
 
+signal character_reset
+
 const ActionClass = preload("res://Characters/ActionBase.gd")
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 
@@ -111,6 +113,9 @@ func reset_character():
 	
 	var ai = self.character.get_node("Controller/AI")
 	DrawActions.set_ai(ai)
+	
+	var state = self._get_state()
+	DrawActions.set_state(state)
 
 func _get_state():
 	return {
@@ -154,9 +159,6 @@ func _refresh():
 	self.enemy_life = EnemyLife.value
 
 	self.reset_character()
-	
-	var state = self._get_state()
-	DrawActions.set_state(state)
 
 	Loading.visible = false
 

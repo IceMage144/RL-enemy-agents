@@ -21,8 +21,8 @@ var tm
 var parent
 var velocity = Vector2()
 
-onready var logger = Logger.new()
 onready var Action = ActionClass.new()
+onready var logger = Logger.new()
 
 func _is_aligned(act, vec):
 	# TODO: Move this function to another place
@@ -40,6 +40,10 @@ func _ready():
 	self.tm = global.find_entity("floor")
 	if GameConfig.get_debug_flag("character"):
 		$DebugTimer.start()
+
+func _exit_tree():
+	self.logger.free()
+	Action.free()
 
 func init(params):
 	self.ai = AINode.instance()
@@ -138,6 +142,27 @@ func get_features_after_action(state, action):
 
 func get_features(state):
 	return self.get_features_after_action(state, Action.IDLE)
+	# var enemy_mov = Action.get_movement(state.enemy_act)
+	# var enemy_dir_vec = Action.to_vec(state.enemy_act)
+	# var pos_diff = state.enemy_pos - state.self_pos
+	# var diag = self.get_viewport().size.length()
+	# var char_dist = state.self_pos.distance_to(state.enemy_pos)
+
+	# var out = global.create_array(Feature.FEATURES_SIZE, 0.0)
+	# out[Feature.POS_X_DIFF] = pos_diff.x / diag
+	# out[Feature.POS_Y_DIFF] = pos_diff.y / diag
+	# out[Feature.ENEMY_DIST] = char_dist / diag
+	# out[Feature.SELF_LIFE] = state.self_life / state.self_maxlife
+	# out[Feature.ENEMY_LIFE] = state.enemy_life / state.enemy_maxlife
+	# out[Feature.ENEMY_ATTACKING] = 2.0 * float(enemy_mov == Action.ATTACK) - 1.0
+	# out[Feature.ENEMY_DIR_X] = enemy_dir_vec.x
+	# out[Feature.ENEMY_DIR_Y] = enemy_dir_vec.y
+	# out[Feature.BIAS] = 1.0
+
+	# return out
+
+func get_features_names():
+	return self.ai.get_features_names()
 
 func can_think():
 	# TODO: Is this the right way to do it?

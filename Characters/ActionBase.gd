@@ -28,9 +28,10 @@ var _id_to_str = {}
 
 func _init():
 	var vec = Vector2(1, 0)
+	var i = 0
 	for dir_id in Direction.values():
-		self._dir_to_vec[dir_id] = vec
-		vec = vec.rotated(- PI / 4)
+		self._dir_to_vec[dir_id] = vec.rotated(- PI * i / 4)
+		i += 1
 	self._dir_to_vec[0] = Vector2()
 	
 	for mov in Movement.keys():

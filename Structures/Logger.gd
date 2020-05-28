@@ -1,5 +1,7 @@
 extends Object
 
+const DATA_BASE_PATH = "res://assets/scripts/data/"
+
 var table = {}
 var meta_table = {}
 
@@ -59,8 +61,8 @@ func get_metadata(name, key, default=null):
 
 func save_to_csv(name, file_name):
 	var save_file = File.new()
-	file_name = self.find_unused_file_name("res://assets/scripts/data/" + file_name,
-										   ".csv")
+	file_name = DATA_BASE_PATH + file_name
+	file_name = self.find_unused_file_name(file_name, ".csv")
 
 	save_file.open(file_name, File.WRITE)
 	var data = self.get_stored(name)
@@ -97,8 +99,8 @@ func save_to_csv(name, file_name):
 
 func save_to_json(name, file_name):
 	var save_file = File.new()
-	file_name = self.find_unused_file_name("res://assets/scripts/data/" + file_name,
-										   ".json")
+	file_name = DATA_BASE_PATH + file_name
+	file_name = self.find_unused_file_name(file_name, ".json")
 	save_file.open(file_name, File.WRITE)
 
 	var table = {}

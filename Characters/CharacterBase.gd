@@ -76,15 +76,9 @@ func _ready():
 	self.controller = ControllerNode.instance()
 	self.set_max_life(self.max_life)
 	$LifeBar.value = self.life
-	match self.controller_type:
-		Controller.PLAYER:
-			self.controller.set_script(PlayerController)
-			self.add_child(self.controller)
-			self.controller_name = "Player"
-			self.add_to_group("player")
-		Controller.AI:
-			self.controller_name = ai_name[self.ai_type]
-			self.add_to_group("robot")
+
+func _exit_tree():
+	Action.free()
 
 func init(params):
 	self.network_id = global.dict_get(params, "network_id", null)
@@ -113,8 +107,32 @@ func init(params):
 		self.set_life(int(clamp(params.life, 0, self.get_max_life())))
 	else:
 		self.set_life(self.max_life)
-	if self.controller_type == Controller.AI:
-		self._init_ai_controller(params)
+
+	self.learning_activated = params.learning_activated
+	self.learning_rate = params.learning_rate
+	self.discount = params.discount
+	self.max_exploration_rate = params.max_exploration_rate
+	self.min_exploration_rate = params.min_exploration_rate
+	self.exploration_rate_decay_time = params.exploration_rate_decay_time
+	self.experience_replay = params.experience_replay
+	self.prioritization = params.prioritization
+	self.experience_sample_size = params.experience_sample_size
+	self.experience_size_limit = params.experience_size_limit
+	self.priority_exponent = params.priority_exponent
+	self.weight_exponent = params.weight_exponent
+	self.num_freeze_iter = params.num_freeze_iter
+	self.think_time = params.think_time
+
+	match self.controller_type:
+		Controller.PLAYER:
+			self.controller.set_script(PlayerController)
+			self.add_child(self.controller)
+			self.controller_name = "Player"
+			self.add_to_group("player")
+		Controller.AI:
+			self.controller_name = ai_name[self.ai_type]
+			self.add_to_group("robot")
+			self._init_ai_controller(params)
 
 func end():
 	self.controller.end()
@@ -169,7 +187,7 @@ func is_ai():
 	return self.controller_type == Controller.AI
 
 func get_full_name():
-	return self.name + " (" + self.controller_name + ")"
+	return "%s(%s)" % [self.name, self.controller_name]
 
 func get_team():
 	return self.team
@@ -291,6 +309,7 @@ func get_info():
 		"damage": self.damage,
 		"defense": self.defense,
 		"controller_type": self.controller_type,
+		"controller_name": self.controller_name,
 		"ai_type": self.ai_type,
 		"learning_activated": self.learning_activated,
 		"learning_rate": self.learning_rate,
@@ -305,5 +324,6 @@ func get_info():
 		"experience_sample_size": self.experience_sample_size,
 		"experience_size_limit": self.experience_size_limit,
 		"num_freeze_iter": self.num_freeze_iter,
-		"think_time": self.think_time
+		"think_time": self.think_time,
+		"features": self.controller.get_features_names()
 	}

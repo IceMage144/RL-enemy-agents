@@ -38,7 +38,9 @@ func _ready():
 # Dict -> void
 func init(params):
 	.init(params)
-	self.ep = Experience.new(self.experience_sample_size, self.weight_exponent)
+	self.ep = Experience.new(self.experience_sample_size,
+							 self.weight_exponent,
+							 self.experience_size_limit)
 	if params.has("network_id") and params.network_id != null:
 		var character_type = params.character_type
 		var network_id = params.network_id

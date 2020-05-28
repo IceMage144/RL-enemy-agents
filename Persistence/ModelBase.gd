@@ -12,13 +12,20 @@ func _ready():
 	assert(tag != "")
 	# Assert that the inherited class sets a model
 	assert(model != null)
-	self._cached_data = SaveManager.load_data(tag)
+	SaveManager.connect("reloaded_save", self, "reload_data")
+	self.reload_data()
+
+func reload_data():
+	self._cached_data = SaveManager.load_data(self.tag)
 	if GameConfig.get_debug_flag("persistence"):
-		print(tag + " loaded " + self._print_debug(self._cached_data))
-	for key in model:
-		var data_schema = model[key]
+		print(self.tag + " loaded " + self._print_debug(self._cached_data))
+	for key in self.model:
+		var data_schema = self.model[key]
 		if data_schema.has("default") and not self._cached_data.has(key):
-			self._cached_data[key] = data_schema["default"]
+			if data_schema["type"] > TYPE_STRING:
+				self._cached_data[key] = data_schema["default"].duplicate()
+			else:
+				self._cached_data[key] = data_schema["default"]
 			if GameConfig.get_debug_flag("persistence"):
 				print("Overwrited data: " + str(key) + " with " + str(data_schema["default"]))
 
