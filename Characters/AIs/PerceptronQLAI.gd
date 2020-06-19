@@ -38,9 +38,6 @@ func end():
 		"time": self.time
 	})
 
-func get_info():
-	return []
-
 func _get_q_value(state, action, weights):
 	var out = self._get_features_after_action(state, action)
 	for i in range(out.size()):

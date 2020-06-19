@@ -225,22 +225,6 @@ func read_json(file_path, default={}):
 		file.close()
 	return data
 
-func save_info(nodes):
-	var saveFile = File.new()
-	var saveInfo = self.read_json(SAVE_PATH, [])
-
-	var newInfos = {}
-	for node in nodes:
-		var name = node.get_name()
-		var info = node.get_info()
-		newInfos[name] = info
-	
-	saveInfo.append(newInfos)
-
-	saveFile.open(SAVE_PATH, saveFile.WRITE)
-	saveFile.store_string(JSON.print(saveInfo))
-	saveFile.close()
-
 func sum(array):
 	var sum = 0.0
 	for el in array:
@@ -260,3 +244,15 @@ func normalize(array):
 
 func get_character_class(char_name):
 	return load("res://Characters/%s/%s.tscn" % [char_name, char_name])
+
+func deep_copy(obj):
+	var obj_copy = obj
+	if typeof(obj) == TYPE_ARRAY:
+		obj_copy = obj.duplicate()
+		for i in range(obj_copy.size()):
+			obj_copy[i] = self.deep_copy(obj[i])
+	elif typeof(obj) == TYPE_DICTIONARY:
+		obj_copy = obj.duplicate()
+		for k in obj_copy.keys():
+			obj_copy[k] = self.deep_copy(obj[k])
+	return obj_copy

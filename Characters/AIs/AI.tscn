@@ -1,7 +1,12 @@
 [gd_scene format=2]
 
-[node name="AI" type="Node" groups=[
-"has_arch",
-]]
+[node name="AI" type="Node"]
+
+[node name="LearnTimer" type="Timer" parent="." index="0"]
+
+process_mode = 1
+wait_time = 1.0
+one_shot = false
+autostart = false
 
 

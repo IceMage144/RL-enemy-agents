@@ -27,14 +27,19 @@ var INPUT_TYPE = [INPUT_VEC, VALUE]
 
 export(int, 1, 10000) var input_size = 1 setget set_input_size
 export(LOSS_TYPE) var loss_func = MINIMUM_SQUARES_ERROR setget set_loss_func
+export(float, 0.0, 1.0, 0.0001) var learning_rate = 0.01 setget set_lr
 
 var output_size
 var depth
 var _nn
 
+func _exit_tree():
+	self._nn.free()
+
 func init_nn():
 	self._nn.input_size = self.input_size
 	self._nn.loss_function = self.loss_func
+	self._nn.learning_rate = self.learning_rate
 
 	self._nn.init()
 	for child in self.get_children():
@@ -57,6 +62,11 @@ func set_loss_func(new_func):
 	loss_func = new_func
 	if new_func != loss_func and self._nn:
 		self._nn.loss_func = new_func
+
+func set_lr(new_lr):
+	learning_rate = new_lr
+	if self._nn:
+		self._nn.learning_rate = new_lr
 
 func clear_memory():
 	self._nn.clear_memory()

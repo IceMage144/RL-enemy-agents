@@ -15,7 +15,7 @@
 [ext_resource path="res://addons/godot-behavior-tree-plugin/action_icon.png" type="Texture" id=13]
 [ext_resource path="res://Characters/AIs/BehaviorTreeNodes/VarComparator.gd" type="Script" id=14]
 
-[node name="BasicBT" type="Node"]
+[node name="BasicBT" type="Node" index="0"]
 
 script = ExtResource( 1 )
 

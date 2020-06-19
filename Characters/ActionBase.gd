@@ -61,17 +61,26 @@ func to_string(action):
 	return self._id_to_str[movement]
 
 func from_string(string):
-	var first_string_size = string.find("_")
-	var mov_name = string.to_upper()
-	if first_string_size != -1:
-		mov_name = mov_name.substr(0, first_string_size)
+	if string == "":
+		return 0
 
+	var first_string_size = string.find("_")
+	var upper_string = string.to_upper()
+	var mov_name = upper_string
+	var dir_name = upper_string
+	
+	if Movement.has(mov_name):
+		return Movement[mov_name]
+	elif Direction.has(dir_name):
+		return Direction[dir_name]
+	elif first_string_size == -1:
+		# Cannot identify action
+		assert(false)
+
+	mov_name = upper_string.substr(0, first_string_size)
+	dir_name = upper_string.substr(first_string_size + 1, string.length())
 	# Movement does not exists
 	assert(Movement.has(mov_name))
-	if first_string_size == -1:
-		return Movement[mov_name]
-	
-	var dir_name = string.substr(first_string_size + 1, string.length()).to_upper()
 	# Direction does not exists
 	assert(Direction.has(dir_name))
 

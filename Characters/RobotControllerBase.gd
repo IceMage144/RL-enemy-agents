@@ -7,18 +7,21 @@ const Logger = preload("res://Structures/Logger.gd")
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 const AIType = AIEnums.AIType
 const Feature = AIEnums.QLFeature
+const Reward = AIEnums.Reward
 
 const ai_path = {
 	AIType.PERCEPTRON_QL: "res://Characters/AIs/PerceptronQLAI.gd",
 	AIType.SINGLE_QL: "res://Characters/AIs/SingleQLAI.gd",
 	AIType.MEMORY_QL: "res://Characters/AIs/MemoryQLAI.gd",
 	AIType.MULTI_QL: "res://Characters/AIs/MultiQLAI.gd",
-	AIType.BASIC_BT: "res://Characters/AIs/BasicBTAI.gd"
+	AIType.BASIC_BT: "res://Characters/AIs/BasicBTAI.gd",
+	AIType.IDLE_BT: "res://Characters/AIs/IdleBTAI.gd"
 }
 
 var ai
-var tm
 var parent
+var reward_func
+
 var velocity = Vector2()
 
 onready var Action = ActionClass.new()
@@ -37,7 +40,6 @@ func _is_aligned(act, vec):
 
 func _ready():
 	self.parent = self.get_parent()
-	self.tm = global.find_entity("floor")
 	if GameConfig.get_debug_flag("character"):
 		$DebugTimer.start()
 
@@ -46,17 +48,21 @@ func _exit_tree():
 	Action.free()
 
 func init(params):
+	self.reward_func = params.reward_func
 	self.ai = AINode.instance()
-	self.ai.set_script(load(ai_path[params.ai_type]))
+	var ai_type = params.ai_type
+	self.ai.set_script(load(ai_path[ai_type]))
 	self.add_child(self.ai)
 	var initial_state = self.get_state()
 	self.ai.init({
 		"learning_activated": params.learning_activated,
 		"learning_rate": params.learning_rate,
+		"learning_rate_decay_exponent": params.learning_rate_decay_exponent,
 		"discount": params.discount,
 		"max_exploration_rate": params.max_exploration_rate,
 		"min_exploration_rate": params.min_exploration_rate,
 		"exploration_rate_decay_time": params.exploration_rate_decay_time,
+		"idle_time": params.idle_time,
 		"experience_replay": params.experience_replay,
 		"prioritization": params.prioritization,
 		"experience_sample_size": params.experience_sample_size,
@@ -64,7 +70,7 @@ func init(params):
 		"priority_exponent": params.priority_exponent,
 		"weight_exponent": params.weight_exponent,
 		"num_freeze_iter": params.num_freeze_iter,
-		"think_time": params.think_time,
+		"learn_time": params.learn_time,
 		"features_size": Feature.FEATURES_SIZE,
 		"initial_state": initial_state,
 		"initial_action": Action.IDLE,
@@ -119,18 +125,40 @@ func get_reward(last_state, new_state, timeout):
 	# to what one actually wants in the environment, rather than according to
 	# how one thinks the agent should behave"
 	if not new_state.has_enemy or new_state.enemy_life == 0:
-		return 1.0
+		match self.reward_func:
+			Reward.SELF_LIFE:
+				return 0.0
+			_:
+				return 1.0
 
 	if new_state.self_life == 0 or timeout:
-		return -1.0
+		match self.reward_func:
+			Reward.ENEMY_LIFE_SIGN, Reward.ALL_LIFE_SIGN_PLUS:
+				return 0.0
+			_:
+				return -1.0
 
 	var self_life_dif = float(last_state.self_life - new_state.self_life)
 	var enemy_life_dif = float(last_state.enemy_life - new_state.enemy_life)
+	var self_life_dif_norm = self_life_dif / last_state.self_life
+	var enemy_life_dif_norm = enemy_life_dif / last_state.enemy_life
 
-	# Range: [-1.0, 0.0]
-	# return - float(self_life_dif) / last_state.self_life
-	# Range: [-1.0, 1.0]
-	return enemy_life_dif / last_state.enemy_life - self_life_dif / last_state.self_life
+	match self.reward_func:
+		Reward.SELF_LIFE:
+			# Range: [-1.0, 0.0]
+			return - self_life_dif_norm
+		Reward.ALL_LIFE:
+			# Range: [-1.0, 1.0]
+			return enemy_life_dif_norm - self_life_dif_norm
+		Reward.ALL_LIFE_SIGN:
+			# Range: {-1.0, 0.0, 1.0}
+			return sign(enemy_life_dif_norm - self_life_dif_norm)
+		Reward.ENEMY_LIFE_SIGN:
+			# Range: {0.0, 1.0}
+			return sign(enemy_life_dif_norm)
+		Reward.ALL_LIFE_SIGN_PLUS:
+			# Range: {0.0, 0.5, 1.0}
+			return 0.5 * (sign(enemy_life_dif_norm - self_life_dif_norm) + 1)
 
 # Abstract
 func get_legal_actions(state):
@@ -169,7 +197,7 @@ func can_think():
 	return self.parent.is_process_action(self.parent.action)
 
 func before_reset(timeout):
-	self.ai.update_state(self.get_state(), true, timeout)
+	self.ai.update_state_action(self.get_state(), true, timeout)
 
 # Abstract
 func reset(timeout):
@@ -180,21 +208,14 @@ func after_reset(timeout):
 
 func _on_ThinkTimer_timeout():
 	if self.can_think():
-		var ts = OS.get_ticks_msec()
-
-		self.ai.update_state(self.get_state(), false, false)
-
-		var te = OS.get_ticks_msec()
-		self.logger.push("update_state", te - ts)
+		self.ai.update_state_action(self.get_state(), false, false)
 
 # Print some variables for debug here
 func _on_DebugTimer_timeout():
 	print("======== " + self.parent.get_full_name() + " ========")
 	var stats = ["max", "min", "avg"]
-	self.logger.print_stats("update_state", stats)
 	# self.logger.print_stats("max_q_val", stats)
 	# self.logger.print_stats("reward", stats)
-	self.logger.flush("update_state")
 	# self.logger.flush("max_q_val")
 	# self.logger.flush("reward")
 	# print("epsilon: {}".format(self.epsilon))

@@ -8,7 +8,7 @@ extends "res://Characters/AIs/QLAI.gd"
 
 const Feature = preload("res://Characters/AIs/AIEnums.gd").QLFeature
 const Experience = preload("res://Characters/AIs/Experience.gd")
-const NeuralNetwork = preload("res://Characters/AIs/SingleNN.tscn")
+const NeuralNetwork = preload("res://Characters/AIs/SingleNNRMS.tscn")
 
 var ep
 var learning_model
@@ -57,25 +57,36 @@ func save_analysis(dir_base):
 	var file_path = "%s/%s" % [dir_base, self.network_key]
 	self.parent.logger.save_to_csv("analysis", file_path)
 
-# -> void
-func get_info():
-	return []
-
 # bool -> void
 func reset(timeout):
 	.reset(timeout)
 	if self.use_experience_replay and self.learning_activated:
-		var exp_sample = self.ep.sample()
-		self._update_weights_experience(exp_sample[1], exp_sample[2],
-										exp_sample[3], exp_sample[0],
-										exp_sample[5])
+		var exp_sample = self.ep.sample(200)
+		var feat_sample = exp_sample[1]
+		var reward_sample = exp_sample[2]
+		var next_sample = exp_sample[3]
+		var pos_list = exp_sample[0]
+		var exp_ids = exp_sample[5]
+		for i in range(feat_sample.size()):
+			var next_val = self._compute_value_from_q_values(next_sample[i])
+			var label = reward_sample[i] + self.discount * next_val
+			var q_val = self.learning_model.predict_one(feat_sample[i])[0]
+			var priority = self._get_priority(q_val, label)
+			var exp_id = 0
+			if exp_ids != null:
+				exp_id = exp_ids[i]
+			self._create_csv_entry(feat_sample[i], q_val, reward_sample[i],
+								   next_sample[i], next_val, priority, exp_id, "test")
+		# self._update_weights_experience(exp_sample[1], exp_sample[2],
+		# 								exp_sample[3], exp_sample[0],
+		# 								exp_sample[5])
 
+# -> Array[String]
 func get_features_names():
 	return Feature.keys()
 
 # NeuralNetwork -> void
 func _init_model(model):
-	model.learning_rate = self.alpha
 	model.input_size = self.features_size
 
 # State, Action, Model -> float
@@ -100,7 +111,7 @@ func _compute_value_from_q_values(next_state):
 # State -> Action
 func _compute_action_from_q_values(state):
 	var legal_actions = self.parent.get_legal_actions(state)
-	if randf() < self.epsilon:
+	if randf() < self.get_epsilon():
 		return global.choose_one(legal_actions)
 	var q_values_list = []
 	for a in legal_actions:
@@ -117,7 +128,7 @@ func _get_priority(q_val, label):
 	return pow(td_error, self.priority_exponent)
 
 # State, Action, State, Reward, bool -> void
-func _update_weights(state, action, next_state, reward, last):
+func _update_state(state, action, next_state, reward, last):
 	var features = self._get_features(state)
 	if last:
 		next_state = null
@@ -127,33 +138,62 @@ func _update_weights(state, action, next_state, reward, last):
 	var label = reward + self.discount * next_val
 	var q_val = self.learning_model.predict_one(features)[0]
 	var priority = self._get_priority(q_val, label)
-	self._create_csv_entry(features, q_val, reward, next_state, next_val,
-						   priority, exp_id, false)
+	self._create_csv_entry(features, q_val, reward, next_state,
+						   next_val, priority, exp_id, "update")
+
+# State, Action, State, Reward, bool -> void
+func _update_weights():
+	var exp_sample
+	if self.use_experience_replay:
+		exp_sample = self.ep.sample()
+	else:
+		exp_sample = self.ep.get_last()
+	self._update_weights_experience(exp_sample[1], exp_sample[2],
+									exp_sample[3], exp_sample[0],
+									exp_sample[5], "replay")
 
 # Array[Features], Array[Reward], Array[State], Array[int] -> void
-func _update_weights_experience(feat_sample, reward_sample, next_sample, pos_list, exp_ids=null):
+func _update_weights_experience(feat_sample, reward_sample, next_sample, pos_list, exp_ids=null, purpuse="train"):
 	var label_vec = []
 	var priorities = []
+	var overflow = false
+	var val = 0
 
 	for i in range(feat_sample.size()):
 		var next_val = self._compute_value_from_q_values(next_sample[i])
 		var label = reward_sample[i] + self.discount * next_val
 		var q_val = self.learning_model.predict_one(feat_sample[i])[0]
+		# if abs(q_val) > 10 * self.overflow_limiar or str(q_val) == "nan":
+		# 	self.emit_signal("overflow_alert")
+		# 	overflow = "q_val"
+		# 	val = q_val
+		# if abs(next_val) > 10 * self.overflow_limiar or str(next_val) == "nan":
+		# 	self.emit_signal("overflow_alert")
+		# 	overflow = "next_val"
+		# 	val = next_val
 		var priority = self._get_priority(q_val, label)
+		# if abs(priority) > 10 * self.overflow_limiar or str(priority) == "nan":
+		# 	self.emit_signal("overflow_alert")
+		# 	overflow = "priority"
+		# 	val = priority
 		priorities.append(priority)
 		label_vec.append([label])
 		var exp_id = 0
 		if exp_ids != null:
 			exp_id = exp_ids[i]
 		self._create_csv_entry(feat_sample[i], q_val, reward_sample[i],
-							   next_sample[i], next_val, priority, exp_id, true)
+							   next_sample[i], next_val, priority, exp_id, purpuse)
+
+	# if overflow:
+	# 	print("Overflow detected %s=%s <------------------" % [overflow, str(val)])
 	
 	var weights = []
-	if self.use_prioritization:
+	if self.use_prioritization and pos_list.size() != 0:
 		weights = self.ep.update(pos_list, priorities)
+	self.learning_model.learning_rate = self.get_alpha()
 	self.learning_model.train(feat_sample, label_vec, -1, 1, weights)
 
-func _create_csv_entry(feat, q_val, reward, next_state, next_val, priority, exp_id, replay):
+func _create_csv_entry(feat, q_val, reward, next_state, next_val, priority, exp_id, purpuse):
 	var entry = {
 		"pos_x_diff": feat[Feature.POS_X_DIFF],
 		"pos_y_diff": feat[Feature.POS_Y_DIFF],
@@ -167,11 +207,12 @@ func _create_csv_entry(feat, q_val, reward, next_state, next_val, priority, exp_
 		"reward": reward,
 		"next_val": next_val,
 		"priority": priority,
-		"epsilon": self.epsilon,
+		"exploration_rate": self.get_epsilon(),
+		"learning_rate": self.get_alpha(),
 		"experience_size": self.ep.get_size(),
 		"time": self.time,
 		"exp_id": exp_id,
-		"replay": replay
+		"purpuse": purpuse
 	}
 	if next_state != null:
 		entry["terminal"] = false

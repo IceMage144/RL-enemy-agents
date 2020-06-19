@@ -45,10 +45,6 @@ func end():
 		"time": self.time
 	})
 
-# -> void
-func get_info():
-	return []
-
 # bool -> void
 func reset(timeout):
 	.reset(timeout)

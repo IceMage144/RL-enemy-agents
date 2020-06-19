@@ -6,6 +6,7 @@ const ControllerNode = preload("res://Characters/Controller.tscn")
 const ActionClass = preload("res://Characters/ActionBase.gd")
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 const AIType = AIEnums.AIType
+const Reward = AIEnums.Reward
 
 signal character_death # begin death animation
 signal character_died # end death animation
@@ -21,7 +22,8 @@ const ai_name = {
 	AIType.SINGLE_QL: "Single QL",
 	AIType.MEMORY_QL: "Memory QL",
 	AIType.MULTI_QL: "Multi QL",
-	AIType.BASIC_BT: "Basic BT"
+	AIType.BASIC_BT: "Basic BT",
+	AIType.IDLE_BT: "Idle BT"
 }
 
 const ai_color = {
@@ -29,7 +31,16 @@ const ai_color = {
 	AIType.SINGLE_QL: Color(1.0, 0.2, 0.2, 1.0),
 	AIType.MEMORY_QL: Color(0.2, 0.2, 1.0, 1.0),
 	AIType.MULTI_QL: Color(0.0, 1.0, 1.0, 1.0),
-	AIType.BASIC_BT: Color(1.0, 0.0, 1.0, 1.0)
+	AIType.BASIC_BT: Color(1.0, 0.0, 1.0, 1.0),
+	AIType.IDLE_BT: Color(1.0, 1.0, 1.0, 1.0)
+}
+
+const reward_func_repr = {
+	Reward.SELF_LIFE: "-(s_{n-1}-s_{n})/s_{n-1}",
+	Reward.ALL_LIFE: "(e_{n-1}-e_{n})/e_{n-1}-(s_{n-1}-s_{n})/s_{n-1}",
+	Reward.ALL_LIFE_SIGN: "sign((e_{n-1}-e_{n})/e_{n-1}-(s_{n-1}-s_{n})/s_{n-1})",
+	Reward.ENEMY_LIFE_SIGN: "sign((e_{n-1}-e_{n})/e_{n-1})",
+	Reward.ALL_LIFE_SIGN_PLUS: "(sign((e_{n-1}-e_{n})/e_{n-1}-(s_{n-1}-s_{n})/s_{n-1})+1)/2"
 }
 
 export(int) var speed = 120
@@ -39,12 +50,15 @@ export(int) var damage = 1
 export(int) var defense = 0
 export(Controller) var controller_type = Controller.PLAYER
 export(AIType) var ai_type = AIType.PERCEPTRON_QL
+export(Reward) var reward_func = Reward.SELF_LIFE
 export(bool) var learning_activated = true
 export(float, 0.0, 1.0, 0.0001) var learning_rate = 0.0
+export(float, 0.5, 1.0, 0.001) var learning_rate_decay_exponent = 0.0
 export(float, 0.0, 1.0, 0.001) var discount = 0.0
 export(float, 0.0, 1.0, 0.001) var max_exploration_rate = 1.0
 export(float, 0.0, 1.0, 0.001) var min_exploration_rate = 0.0
 export(float) var exploration_rate_decay_time = 0.0
+export(float) var idle_time = 0.0
 export(bool) var experience_replay = false
 export(bool) var prioritization = false
 export(float, 0.0, 1.0) var priority_exponent = 0.0
@@ -53,6 +67,7 @@ export(int) var experience_sample_size = 40
 export(int) var experience_size_limit = 400
 export(int) var num_freeze_iter = 1
 export(float) var think_time = 0.1
+export(float) var learn_time = 0.1
 
 var already_hit = []
 var velocity = Vector2()
@@ -96,9 +111,35 @@ func init(params):
 		assert(params.speed > 0)
 		self.speed = params.speed
 	if params.has("ai_type"):
-		# Assert AI type exists
-		assert(params.ai_type < AIType.size() and params.ai_type >= 0)
-		self.ai_type = params.ai_type
+		if typeof(params.ai_type) == TYPE_STRING:
+			# Assert AI type exists
+			assert(AIType.has(params.ai_type))
+			self.ai_type = AIType[params.ai_type]
+			params.ai_type = self.ai_type
+		else:
+			# Assert AI type exists
+			assert(params.ai_type < AIType.size() and params.ai_type >= 0)
+			self.ai_type = params.ai_type
+	if params.has("reward_func"):
+		if typeof(params.reward_func) == TYPE_STRING:
+			# Assert reward type exists
+			assert(Reward.has(params.reward_func))
+			self.reward_func = Reward[params.reward_func]
+			params.reward_func = self.reward_func
+		else:
+			# Assert reward type exists
+			assert(params.reward_func < Reward.size() and params.reward_func >= 0)
+			self.reward_func = params.reward_func
+	if params.has("controller_type"):
+		if typeof(params.controller_type) == TYPE_STRING:
+			# Assert controller type exists
+			assert(Controller.has(params.controller_type))
+			self.controller_type = Controller[params.controller_type]
+			params.controller_type = self.controller_type
+		else:
+			# Assert controller type exists
+			assert(params.controller_type < Controller.size() and params.controller_type >= 0)
+			self.controller_type = params.controller_type
 	if params.has("max_life"):
 		# Assert that character will have life
 		assert(params.max_life > 0)
@@ -108,20 +149,17 @@ func init(params):
 	else:
 		self.set_life(self.max_life)
 
-	self.learning_activated = params.learning_activated
-	self.learning_rate = params.learning_rate
-	self.discount = params.discount
-	self.max_exploration_rate = params.max_exploration_rate
-	self.min_exploration_rate = params.min_exploration_rate
-	self.exploration_rate_decay_time = params.exploration_rate_decay_time
-	self.experience_replay = params.experience_replay
-	self.prioritization = params.prioritization
-	self.experience_sample_size = params.experience_sample_size
-	self.experience_size_limit = params.experience_size_limit
-	self.priority_exponent = params.priority_exponent
-	self.weight_exponent = params.weight_exponent
-	self.num_freeze_iter = params.num_freeze_iter
-	self.think_time = params.think_time
+	var params_keys = ["learning_activated", "learning_rate", "discount",
+					   "max_exploration_rate", "min_exploration_rate",
+					   "exploration_rate_decay_time", "experience_replay",
+					   "prioritization", "experience_sample_size",
+					   "experience_size_limit", "priority_exponent",
+					   "weight_exponent", "num_freeze_iter", "think_time",
+					   "learn_time", "learning_rate_decay_exponent",
+					   "idle_time"]
+	for key in params_keys:
+		if params.has(key):
+			self[key] = params[key]
 
 	match self.controller_type:
 		Controller.PLAYER:
@@ -157,10 +195,12 @@ func _init_ai_controller(params):
 		"ai_type": self.ai_type,
 		"learning_activated": self.learning_activated,
 		"learning_rate": self.learning_rate,
+		"learning_rate_decay_exponent": self.learning_rate_decay_exponent,
 		"discount": self.discount,
 		"max_exploration_rate": self.max_exploration_rate,
 		"min_exploration_rate": self.min_exploration_rate,
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
+		"idle_time": self.idle_time,
 		"experience_replay": self.experience_replay,
 		"prioritization": self.prioritization,
 		"experience_sample_size": self.experience_sample_size,
@@ -169,9 +209,11 @@ func _init_ai_controller(params):
 		"weight_exponent": self.weight_exponent,
 		"num_freeze_iter": self.num_freeze_iter,
 		"think_time": self.think_time,
+		"learn_time": self.learn_time,
 		"character_type": self.character_type,
 		"network_id": self.network_id,
-		"can_save": self.can_save
+		"can_save": self.can_save,
+		"reward_func": self.reward_func
 	}
 	global.insert_default_keys(params, default_params)
 	self.controller.init(params)
@@ -187,7 +229,7 @@ func is_ai():
 	return self.controller_type == Controller.AI
 
 func get_full_name():
-	return "%s(%s)" % [self.name, self.controller_name]
+	return "%s (%s)" % [self.name, self.controller_name]
 
 func get_team():
 	return self.team
@@ -311,12 +353,14 @@ func get_info():
 		"controller_type": self.controller_type,
 		"controller_name": self.controller_name,
 		"ai_type": self.ai_type,
+		"reward_func": reward_func_repr[self.reward_func],
 		"learning_activated": self.learning_activated,
 		"learning_rate": self.learning_rate,
 		"discount": self.discount,
 		"max_exploration_rate": self.max_exploration_rate,
 		"min_exploration_rate": self.min_exploration_rate,
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
+		"idle_time": self.idle_time,
 		"experience_replay": self.experience_replay,
 		"prioritization": self.prioritization,
 		"priority_exponent": self.priority_exponent,
@@ -325,5 +369,6 @@ func get_info():
 		"experience_size_limit": self.experience_size_limit,
 		"num_freeze_iter": self.num_freeze_iter,
 		"think_time": self.think_time,
+		"learn_time": self.learn_time,
 		"features": self.controller.get_features_names()
 	}
