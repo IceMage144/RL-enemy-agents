@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://addons/brain-lib/NeuralNetwork1DGradientDescent.gd" type="Script" id=1]
-[ext_resource path="res://addons/brain-lib/icons/nn1d_gd.png" type="Texture" id=2]
+[ext_resource path="res://addons/brain-lib/NeuralNetwork1DRMSprop.gd" type="Script" id=1]
+[ext_resource path="res://addons/brain-lib/icons/nn1d_rmsprop.png" type="Texture" id=2]
 [ext_resource path="res://addons/brain-lib/FullyConnected.gd" type="Script" id=3]
 [ext_resource path="res://addons/brain-lib/icons/fc.png" type="Texture" id=4]
 [ext_resource path="res://addons/brain-lib/Tanh.gd" type="Script" id=5]
@@ -13,10 +13,10 @@ script = ExtResource( 1 )
 __meta__ = {
 "_editor_icon": ExtResource( 2 )
 }
-input_size = 10
+input_size = 1
 loss_func = null
 learning_rate = 0.01
-weight_decay = 0.01
+decay_term = 0.01
 
 [node name="FullyConnected" type="Node" parent="." index="0"]
 
@@ -24,7 +24,7 @@ script = ExtResource( 3 )
 __meta__ = {
 "_editor_icon": ExtResource( 4 )
 }
-size = 16
+size = 64
 has_bias = true
 
 [node name="Tanh" type="Node" parent="." index="1"]
@@ -35,6 +35,22 @@ __meta__ = {
 }
 
 [node name="FullyConnected2" type="Node" parent="." index="2"]
+
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_icon": ExtResource( 4 )
+}
+size = 64
+has_bias = true
+
+[node name="Tanh2" type="Node" parent="." index="3"]
+
+script = ExtResource( 5 )
+__meta__ = {
+"_editor_icon": ExtResource( 6 )
+}
+
+[node name="FullyConnected3" type="Node" parent="." index="4"]
 
 script = ExtResource( 3 )
 __meta__ = {

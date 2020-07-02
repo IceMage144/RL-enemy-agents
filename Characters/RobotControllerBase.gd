@@ -124,6 +124,13 @@ func get_reward(last_state, new_state, timeout):
 	# "As a general rule, it is better to design performance measures according
 	# to what one actually wants in the environment, rather than according to
 	# how one thinks the agent should behave"
+	if timeout:
+		match self.reward_func:
+			Reward.ALL_LIFE_SIGN_PLUS:
+				return 0.5
+			_:
+				return 0.0
+	
 	if not new_state.has_enemy or new_state.enemy_life == 0:
 		match self.reward_func:
 			Reward.SELF_LIFE:
@@ -131,7 +138,7 @@ func get_reward(last_state, new_state, timeout):
 			_:
 				return 1.0
 
-	if new_state.self_life == 0 or timeout:
+	if new_state.self_life == 0:
 		match self.reward_func:
 			Reward.ENEMY_LIFE_SIGN, Reward.ALL_LIFE_SIGN_PLUS:
 				return 0.0

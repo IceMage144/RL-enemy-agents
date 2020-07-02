@@ -62,10 +62,10 @@ func reset(timeout):
 	.reset(timeout)
 	if self.use_experience_replay and self.learning_activated:
 		var exp_sample = self.ep.sample(200)
+		var pos_list = exp_sample[0]
 		var feat_sample = exp_sample[1]
 		var reward_sample = exp_sample[2]
 		var next_sample = exp_sample[3]
-		var pos_list = exp_sample[0]
 		var exp_ids = exp_sample[5]
 		for i in range(feat_sample.size()):
 			var next_val = self._compute_value_from_q_values(next_sample[i])
@@ -152,40 +152,24 @@ func _update_weights():
 									exp_sample[3], exp_sample[0],
 									exp_sample[5], "replay")
 
-# Array[Features], Array[Reward], Array[State], Array[int] -> void
-func _update_weights_experience(feat_sample, reward_sample, next_sample, pos_list, exp_ids=null, purpuse="train"):
+# Array[Features], Array[Reward], Array[State], Array[int], Array[int], String -> void
+func _update_weights_experience(feat_sample, reward_sample, next_sample, pos_list, exp_ids=null, purpuse="update"):
 	var label_vec = []
 	var priorities = []
-	var overflow = false
-	var val = 0
 
 	for i in range(feat_sample.size()):
 		var next_val = self._compute_value_from_q_values(next_sample[i])
 		var label = reward_sample[i] + self.discount * next_val
 		var q_val = self.learning_model.predict_one(feat_sample[i])[0]
-		# if abs(q_val) > 10 * self.overflow_limiar or str(q_val) == "nan":
-		# 	self.emit_signal("overflow_alert")
-		# 	overflow = "q_val"
-		# 	val = q_val
-		# if abs(next_val) > 10 * self.overflow_limiar or str(next_val) == "nan":
-		# 	self.emit_signal("overflow_alert")
-		# 	overflow = "next_val"
-		# 	val = next_val
 		var priority = self._get_priority(q_val, label)
-		# if abs(priority) > 10 * self.overflow_limiar or str(priority) == "nan":
-		# 	self.emit_signal("overflow_alert")
-		# 	overflow = "priority"
-		# 	val = priority
 		priorities.append(priority)
 		label_vec.append([label])
 		var exp_id = 0
 		if exp_ids != null:
 			exp_id = exp_ids[i]
 		self._create_csv_entry(feat_sample[i], q_val, reward_sample[i],
-							   next_sample[i], next_val, priority, exp_id, purpuse)
-
-	# if overflow:
-	# 	print("Overflow detected %s=%s <------------------" % [overflow, str(val)])
+							   next_sample[i], next_val, priority, exp_id,
+							   purpuse)
 	
 	var weights = []
 	if self.use_prioritization and pos_list.size() != 0:

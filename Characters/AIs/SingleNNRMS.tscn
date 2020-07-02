@@ -24,7 +24,7 @@ script = ExtResource( 3 )
 __meta__ = {
 "_editor_icon": ExtResource( 4 )
 }
-size = 16
+size = 64
 has_bias = true
 
 [node name="Tanh" type="Node" parent="." index="1"]
@@ -35,6 +35,22 @@ __meta__ = {
 }
 
 [node name="FullyConnected2" type="Node" parent="." index="2"]
+
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_icon": ExtResource( 4 )
+}
+size = 64
+has_bias = true
+
+[node name="Tanh2" type="Node" parent="." index="3"]
+
+script = ExtResource( 5 )
+__meta__ = {
+"_editor_icon": ExtResource( 6 )
+}
+
+[node name="FullyConnected3" type="Node" parent="." index="4"]
 
 script = ExtResource( 3 )
 __meta__ = {

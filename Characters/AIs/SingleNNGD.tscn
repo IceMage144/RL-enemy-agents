@@ -4,8 +4,8 @@
 [ext_resource path="res://addons/brain-lib/icons/nn1d_gd.png" type="Texture" id=2]
 [ext_resource path="res://addons/brain-lib/FullyConnected.gd" type="Script" id=3]
 [ext_resource path="res://addons/brain-lib/icons/fc.png" type="Texture" id=4]
-[ext_resource path="res://addons/brain-lib/ReLU.gd" type="Script" id=5]
-[ext_resource path="res://addons/brain-lib/icons/relu.png" type="Texture" id=6]
+[ext_resource path="res://addons/brain-lib/Tanh.gd" type="Script" id=5]
+[ext_resource path="res://addons/brain-lib/icons/tanh.png" type="Texture" id=6]
 
 [node name="SingleNNGD" type="Node" index="0"]
 
@@ -24,10 +24,10 @@ script = ExtResource( 3 )
 __meta__ = {
 "_editor_icon": ExtResource( 4 )
 }
-size = 16
+size = 64
 has_bias = true
 
-[node name="ReLU" type="Node" parent="." index="1"]
+[node name="Tanh" type="Node" parent="." index="1"]
 
 script = ExtResource( 5 )
 __meta__ = {
@@ -35,6 +35,22 @@ __meta__ = {
 }
 
 [node name="FullyConnected2" type="Node" parent="." index="2"]
+
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_icon": ExtResource( 4 )
+}
+size = 64
+has_bias = true
+
+[node name="Tanh2" type="Node" parent="." index="3"]
+
+script = ExtResource( 5 )
+__meta__ = {
+"_editor_icon": ExtResource( 6 )
+}
+
+[node name="FullyConnected3" type="Node" parent="." index="4"]
 
 script = ExtResource( 3 )
 __meta__ = {
