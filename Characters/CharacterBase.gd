@@ -11,6 +11,7 @@ const Reward = AIEnums.Reward
 signal character_death # begin death animation
 signal character_died # end death animation
 
+enum Interpolator { LINEAR, POLYNOMIAL, STEP, RANDOM }
 enum Controller { PLAYER, AI }
 
 const KNOCKBACK_INITIAL_SPEED = 800
@@ -43,6 +44,13 @@ const reward_func_repr = {
 	Reward.ALL_LIFE_SIGN_PLUS: "(sign((e_{n-1}-e_{n})/e_{n-1}-(s_{n-1}-s_{n})/s_{n-1})+1)/2"
 }
 
+const interpolator_path = {
+	Interpolator.LINEAR: "res://Structures/LinearInterpolator.gd",
+	Interpolator.POLYNOMIAL: "res://Structures/PolynomialInterpolator.gd",
+	Interpolator.STEP: "res://Structures/StepInterpolator.gd",
+	Interpolator.RANDOM: "res://Structures/RandomInterpolator.gd"
+}
+
 export(int) var speed = 120
 export(float) var weight = 1
 export(int) var max_life = 3
@@ -52,19 +60,25 @@ export(Controller) var controller_type = Controller.PLAYER
 export(AIType) var ai_type = AIType.PERCEPTRON_QL
 export(Reward) var reward_func = Reward.SELF_LIFE
 export(bool) var learning_activated = true
-export(float, 0.0, 1.0, 0.0001) var learning_rate = 0.0
-export(float, 0.5, 1.0, 0.001) var learning_rate_decay_exponent = 0.0
 export(float, 0.0, 1.0, 0.001) var discount = 0.0
+export(float, 0.0, 1.0, 0.0001) var max_learning_rate = 0.0
+export(float, 0.0, 1.0, 0.0001) var min_learning_rate = 0.0
+export(float) var learning_rate_decay_time = 0.0
+export(Interpolator) var learning_interpolator = Interpolator.POLYNOMIAL
 export(float, 0.0, 1.0, 0.001) var max_exploration_rate = 1.0
 export(float, 0.0, 1.0, 0.001) var min_exploration_rate = 0.0
 export(float) var exploration_rate_decay_time = 0.0
-export(float) var idle_time = 0.0
+export(Interpolator) var exploration_interpolator = Interpolator.LINEAR
+export(float, 0.0, 1.0, 0.001) var max_idle_rate = 0.0
+export(float, 0.0, 1.0, 0.001) var min_idle_rate = 0.0
+export(float) var idle_rate_decay_time = 0.0
+export(Interpolator) var idle_interpolator = Interpolator.STEP
 export(bool) var experience_replay = false
+export(int) var experience_sample_size = 40
+export(int) var experience_size_limit = 400
 export(bool) var prioritization = false
 export(float, 0.0, 1.0) var priority_exponent = 0.0
 export(float, 0.0, 1.0) var weight_exponent = 0.0
-export(int) var experience_sample_size = 40
-export(int) var experience_size_limit = 400
 export(int) var num_freeze_iter = 1
 export(float) var think_time = 0.1
 export(float) var learn_time = 0.1
@@ -111,35 +125,28 @@ func init(params):
 		assert(params.speed > 0)
 		self.speed = params.speed
 	if params.has("ai_type"):
-		if typeof(params.ai_type) == TYPE_STRING:
-			# Assert AI type exists
-			assert(AIType.has(params.ai_type))
-			self.ai_type = AIType[params.ai_type]
-			params.ai_type = self.ai_type
-		else:
-			# Assert AI type exists
-			assert(params.ai_type < AIType.size() and params.ai_type >= 0)
-			self.ai_type = params.ai_type
+		self.ai_type = self._get_from_enum(AIType, params.ai_type)
+		params.ai_type = self.ai_type
 	if params.has("reward_func"):
-		if typeof(params.reward_func) == TYPE_STRING:
-			# Assert reward type exists
-			assert(Reward.has(params.reward_func))
-			self.reward_func = Reward[params.reward_func]
-			params.reward_func = self.reward_func
-		else:
-			# Assert reward type exists
-			assert(params.reward_func < Reward.size() and params.reward_func >= 0)
-			self.reward_func = params.reward_func
+		self.reward_func = self._get_from_enum(Reward, params.reward_func)
+		params.reward_func = self.reward_func
 	if params.has("controller_type"):
-		if typeof(params.controller_type) == TYPE_STRING:
-			# Assert controller type exists
-			assert(Controller.has(params.controller_type))
-			self.controller_type = Controller[params.controller_type]
-			params.controller_type = self.controller_type
-		else:
-			# Assert controller type exists
-			assert(params.controller_type < Controller.size() and params.controller_type >= 0)
-			self.controller_type = params.controller_type
+		self.controller_type = self._get_from_enum(Controller, params.controller_type)
+		params.controller_type = self.controller_type
+	if params.has("learning_interpolator"):
+		var interp = self._get_from_enum(Interpolator,
+										 params.learning_interpolator)
+		self.learning_interpolator = interpolator_path[interp]
+		params.learning_interpolator = self.learning_interpolator
+	if params.has("exploration_interpolator"):
+		var interp = self._get_from_enum(Interpolator,
+										 params.exploration_interpolator)
+		self.exploration_interpolator = interpolator_path[interp]
+		params.exploration_interpolator = self.exploration_interpolator
+	if params.has("idle_interpolator"):
+		var interp = self._get_from_enum(Interpolator, params.idle_interpolator)
+		self.idle_interpolator = interpolator_path[interp]
+		params.idle_interpolator = self.idle_interpolator
 	if params.has("max_life"):
 		# Assert that character will have life
 		assert(params.max_life > 0)
@@ -149,13 +156,14 @@ func init(params):
 	else:
 		self.set_life(self.max_life)
 
-	var params_keys = ["learning_activated", "learning_rate", "discount",
+	var params_keys = ["learning_activated", "discount", "max_learning_rate",
+					   "min_learning_rate", "learning_rate_decay_time",
 					   "max_exploration_rate", "min_exploration_rate",
-					   "exploration_rate_decay_time", "experience_replay",
-					   "prioritization", "experience_sample_size",
-					   "experience_size_limit", "priority_exponent",
-					   "weight_exponent", "num_freeze_iter", "think_time",
-					   "learn_time", "learning_rate_decay_exponent",
+					   "exploration_rate_decay_time", "max_idle_rate",
+					   "min_idle_rate", "idle_rate_decay_time", "experience_replay",
+					   "experience_sample_size", "experience_size_limit",
+					   "prioritization", "priority_exponent", "weight_exponent",
+					   "num_freeze_iter", "think_time", "learn_time",
 					   "idle_time"]
 	for key in params_keys:
 		if params.has(key):
@@ -194,17 +202,23 @@ func _init_ai_controller(params):
 	var default_params = {
 		"ai_type": self.ai_type,
 		"learning_activated": self.learning_activated,
-		"learning_rate": self.learning_rate,
-		"learning_rate_decay_exponent": self.learning_rate_decay_exponent,
 		"discount": self.discount,
+		"max_learning_rate": self.max_learning_rate,
+		"min_learning_rate": self.min_learning_rate,
+		"learning_rate_decay_time": self.learning_rate_decay_time,
+		"learning_interpolator": self.learning_interpolator,
 		"max_exploration_rate": self.max_exploration_rate,
 		"min_exploration_rate": self.min_exploration_rate,
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
-		"idle_time": self.idle_time,
+		"exploration_interpolator": self.exploration_interpolator,
+		"max_idle_rate": self.max_idle_rate,
+		"min_idle_rate": self.min_idle_rate,
+		"idle_rate_decay_time": self.idle_rate_decay_time,
+		"idle_interpolator": self.idle_interpolator,
 		"experience_replay": self.experience_replay,
-		"prioritization": self.prioritization,
 		"experience_sample_size": self.experience_sample_size,
 		"experience_size_limit": self.experience_size_limit,
+		"prioritization": self.prioritization,
 		"priority_exponent": self.priority_exponent,
 		"weight_exponent": self.weight_exponent,
 		"num_freeze_iter": self.num_freeze_iter,
@@ -314,6 +328,15 @@ func reset(timeout):
 func after_reset(timeout):
 	self.controller.after_reset(timeout)
 
+func _get_from_enum(en, val):
+	if typeof(val) == TYPE_STRING:
+		# Assert value exists
+		assert(en.has(val))
+		return en[val]
+	# Assert value exists
+	assert(val < en.size() and val >= 0)
+	return val
+
 func _is_entity_attackable(entity):
 	return entity.is_in_group("damageble") and \
 	  not global.obj_get(entity, "invulnerable", false) and \
@@ -355,18 +378,25 @@ func get_info():
 		"ai_type": self.ai_type,
 		"reward_func": reward_func_repr[self.reward_func],
 		"learning_activated": self.learning_activated,
-		"learning_rate": self.learning_rate,
 		"discount": self.discount,
+		"max_learning_rate": self.max_learning_rate,
+		"min_learning_rate": self.min_learning_rate,
+		"learning_rate_decay_time": self.learning_rate_decay_time,
+		"learning_interpolator": self.learning_interpolator,
 		"max_exploration_rate": self.max_exploration_rate,
 		"min_exploration_rate": self.min_exploration_rate,
 		"exploration_rate_decay_time": self.exploration_rate_decay_time,
-		"idle_time": self.idle_time,
+		"exploration_interpolator": self.exploration_interpolator,
+		"max_idle_rate": self.max_idle_rate,
+		"min_idle_rate": self.min_idle_rate,
+		"idle_rate_decay_time": self.idle_rate_decay_time,
+		"idle_interpolator": self.idle_interpolator,
 		"experience_replay": self.experience_replay,
+		"experience_sample_size": self.experience_sample_size,
+		"experience_size_limit": self.experience_size_limit,
 		"prioritization": self.prioritization,
 		"priority_exponent": self.priority_exponent,
 		"weight_exponent": self.weight_exponent,
-		"experience_sample_size": self.experience_sample_size,
-		"experience_size_limit": self.experience_size_limit,
 		"num_freeze_iter": self.num_freeze_iter,
 		"think_time": self.think_time,
 		"learn_time": self.learn_time,

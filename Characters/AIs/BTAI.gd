@@ -6,10 +6,8 @@ const ActionClass = preload("res://Characters/ActionBase.gd")
 const AIEnums = preload("res://Characters/AIs/AIEnums.gd")
 const Feature = AIEnums.BTFeature
 
-var max_epsilon
-var min_epsilon
-var epsilon_decay_time
-var idle_time
+var epsilon
+var idle_rate
 var last_action
 var last_state
 var bt
@@ -28,15 +26,28 @@ func _process(delta):
 func init(params):
 	self.last_state = params.initial_state
 	self.last_action = params.initial_action
-	self.max_epsilon = params.max_exploration_rate
-	self.min_epsilon = params.min_exploration_rate
-	self.epsilon_decay_time = params.exploration_rate_decay_time
-	self.idle_time = params.idle_time
+
+	var interp_class = load(params.idle_interpolator)
+	self.idle_rate = interp_class.new({
+		"beg_val": params.max_idle_rate,
+		"end_val": params.min_idle_rate,
+		"end_time": params.idle_rate_decay_time
+	})
+
+	interp_class = load(params.exploration_interpolator)
+	self.epsilon = interp_class.new({
+		"beg_val": params.max_exploration_rate,
+		"end_val": params.min_exploration_rate,
+		"beg_time": params.idle_rate_decay_time,
+		"end_time": params.idle_rate_decay_time + params.exploration_rate_decay_time
+	})
 
 func end():
 	pass
 
 func reset(timeout):
+	self.epsilon.reset()
+	self.idle_rate.reset()
 	self.last_state = self.parent.get_state()
 
 func get_name():
@@ -49,7 +60,7 @@ func get_features_names():
 	return Feature.keys()
 
 func update_state_action(state, last=false, timeout=false):
-	if self.time < self.idle_time:
+	if randf() < self.get_idle_rate():
 		return Action.IDLE
 	var features = self._get_features(state)
 	var legal_actions = self.parent.get_legal_actions(state)
@@ -60,11 +71,10 @@ func update_state_action(state, last=false, timeout=false):
 	self.last_state = state
 
 func get_epsilon():
-	if self.epsilon_decay_time == 0.0:
-		return self.min_epsilon
-	var time = clamp(self.time - self.idle_time, 0.0, self.epsilon_decay_time)
-	var factor = time / self.epsilon_decay_time
-	return lerp(self.max_epsilon, self.min_epsilon, factor)
+	return self.epsilon.get(self.time)
+
+func get_idle_rate():
+	return self.idle_rate.get(self.time)
 
 func _get_features(state):
 	var self_dir = Action.to_vec(state.self_act)

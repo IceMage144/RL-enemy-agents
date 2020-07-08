@@ -6,24 +6,20 @@ const ActionClass = preload("res://Characters/ActionBase.gd")
 
 var learning_activated
 var alpha                    # learning rate
-var alpha_decay_exponent     # learning rate decay exponent
-var discount                 # reward discount
-var max_epsilon              # max exploration rate
-var min_epsilon              # min exploration rate
-var epsilon_decay_time       # exploration rate decay time
-var idle_time
+var discount                 # reward discount over time
+var epsilon                  # exploration rate
+var idle_rate                # forced idle action execution rate
 var use_experience_replay
 var use_prioritization
 var experience_sample_size
 var experience_size_limit
 var priority_exponent        # prioritized replay priority exponent
 var weight_exponent          # prioritized replay weight negative exponent
-var num_freeze_iter
+var num_freeze_iter          # number of iterations before freezing target function weights
 var features_size
 var last_state
 var last_action
 var can_save
-var overflow_limiar
 
 var network_key = null
 var iter = 0
@@ -41,7 +37,7 @@ func _ready():
 		 "walk_right_q", "walk_up_right_q", "walk_up_q",
 		 "walk_up_left_q", "walk_left_q", "walk_down_left_q",
 		 "walk_down_q", "walk_down_right_q", "reward",
-		 "next_val", "priority", "purpuse",
+		 "next_val", "priority", "purpuse", "idle_rate",
 		 "exploration_rate", "learning_rate"])
 
 func _process(delta):
@@ -49,13 +45,7 @@ func _process(delta):
 
 func init(params):
 	self.learning_activated = params.learning_activated
-	self.alpha_decay_exponent = params.learning_rate_decay_exponent
-	self.alpha = params.learning_rate
 	self.discount = params.discount
-	self.max_epsilon = params.max_exploration_rate
-	self.min_epsilon = params.min_exploration_rate
-	self.epsilon_decay_time = params.exploration_rate_decay_time
-	self.idle_time = params.idle_time
 	self.use_experience_replay = params.experience_replay
 	self.use_prioritization = params.prioritization
 	self.experience_sample_size = params.experience_sample_size
@@ -67,7 +57,29 @@ func init(params):
 	self.last_state = params.initial_state
 	self.last_action = params.initial_action
 	self.can_save = params.can_save
-	self.overflow_limiar = 2.0 / (1.0 - self.discount)
+
+	var interp_class = load(params.idle_interpolator)
+	self.idle_rate = interp_class.new({
+		"beg_val": params.max_idle_rate,
+		"end_val": params.min_idle_rate,
+		"end_time": params.idle_rate_decay_time
+	})
+
+	interp_class = load(params.exploration_interpolator)
+	self.epsilon = interp_class.new({
+		"beg_val": params.max_exploration_rate,
+		"end_val": params.min_exploration_rate,
+		"beg_time": params.idle_rate_decay_time,
+		"end_time": params.idle_rate_decay_time + params.exploration_rate_decay_time
+	})
+
+	interp_class = load(params.learning_interpolator)
+	self.alpha = interp_class.new({
+		"beg_val": params.max_learning_rate,
+		"end_val": params.min_learning_rate,
+		"beg_time": params.idle_rate_decay_time,
+		"end_time": params.idle_rate_decay_time + params.learning_rate_decay_time
+	})
 
 	if self.learning_activated:
 		$LearnTimer.connect("timeout", self, "_on_LearnTimer_timeout")
@@ -75,6 +87,9 @@ func init(params):
 		$LearnTimer.start()
 
 func reset(timeout):
+	self.epsilon.reset()
+	self.alpha.reset()
+	self.idle_rate.reset()
 	self.last_state = self.parent.get_state()
 
 # Abstract
@@ -106,15 +121,13 @@ func get_action():
 	return self.last_action
 
 func get_epsilon():
-	if self.epsilon_decay_time == 0.0:
-		return self.min_epsilon
-	var time = clamp(self.time - self.idle_time, 0.0, self.epsilon_decay_time)
-	var factor = time / self.epsilon_decay_time
-	return lerp(self.max_epsilon, self.min_epsilon, factor)
+	return self.epsilon.get(self.time)
 
 func get_alpha():
-	var time = max(0.0, self.time - self.idle_time)
-	return self.alpha / pow((1.0 + time), self.alpha_decay_exponent)
+	return self.alpha.get(self.time)
+
+func get_idle_rate():
+	return self.idle_rate.get(self.time)
 
 func update_state_action(state, last=false, timeout=false):
 	if self.learning_activated and self.last_state.has_enemy:

@@ -220,6 +220,7 @@ func _create_csv_entry(feat, q_val, reward, next_state, next_val, priority, exp_
 		"priority": priority,
 		"exploration_rate": self.get_epsilon(),
 		"learning_rate": self.get_alpha(),
+		"idle_rate": self.get_idle_rate(),
 		"experience_size": self.ep.get_size(),
 		"time": self.time,
 		"exp_id": exp_id,

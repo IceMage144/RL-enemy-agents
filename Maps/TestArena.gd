@@ -35,7 +35,7 @@ func init(params):
 	self.logger.push("run_data", ["timeout_time", timeout_time])
 	self.logger.push("run_data", ["arena_size", [self.arena_width, self.arena_height]])
 	for i in range(len(characters_info)):
-		var info = characters_info[i]
+		var info = characters_info[i].duplicate()
 		var char_class = global.get_character_class(info.type)
 		var character = char_class.instance()
 

@@ -132,7 +132,7 @@ func generate_fingerprints():
 
 	for k in range(characters_info.size()):
 		var fingerprint = []
-		var info = characters_info[k]
+		var info = characters_info[k].duplicate()
 		var char_class = global.get_character_class(info.type)
 		var character = char_class.instance()
 
