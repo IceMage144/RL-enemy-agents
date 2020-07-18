@@ -1,6 +1,6 @@
 {
-    "experiment_id": "Mul64-64_bigRounds_bigPriExp",
-    "save_file": "Mul64-64_bigRounds_bigPriExp",
+    "experiment_id": "Sin64-64_WOexplExps_Reverse_bigRounds",
+    "save_file": "Sin64-64_WOexplExps_Reverse_bigRounds",
     "runs": 10,
     "ais_config": [
         {
@@ -30,17 +30,17 @@
             "idle_interpolator": "STEP",
             "experience_replay": true,
             "experience_sample_size": 32,
-            "experience_size_limit": -1,
+            "experience_size_limit": 1200,
             "prioritization": true,
-            "priority_exponent": 1.0,
+            "priority_exponent": 0.7,
             "weight_exponent": 0.5,
-            "num_freeze_iter": 1,
+            "num_freeze_iter": 5,
             "think_time": 0.1,
             "learn_time": 1.0
         }
     ],
     "train_config": {
-        "rounds": 120,
+        "rounds": 160,
         "timeout_time": 40,
         "arena_size": [5, 5],
         "enemies_list": [
@@ -63,12 +63,12 @@
                 "learning_interpolator": "POLYNOMIAL",
                 "max_exploration_rate": 1.0,
                 "min_exploration_rate": 0.3,
-                "exploration_rate_decay_time": 0.0,
-                "exploration_interpolator": "RANDOM",
-                "max_idle_rate": 1.0,
+                "exploration_rate_decay_time": 800.0,
+                "exploration_interpolator": "LINEAR",
+                "max_idle_rate": 0.0,
                 "min_idle_rate": 0.0,
                 "idle_rate_decay_time": 0.0,
-                "idle_interpolator": "RANDOM",
+                "idle_interpolator": "STEP",
                 "experience_replay": false,
                 "experience_sample_size": 0,
                 "experience_size_limit": -1,

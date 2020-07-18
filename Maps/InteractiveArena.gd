@@ -105,7 +105,19 @@ func _create_character(char_type, params):
 		"weight": 1,
 		"max_life": 30,
 		"damage": 10,
-		"defense": 0
+		"defense": 0,
+		"idle_interpolator": "STEP",
+		"max_idle_rate": 0.0,
+		"min_idle_rate": 0.0,
+		"idle_rate_decay_time": 0.0,
+		"exploration_interpolator": "STEP",
+		"max_exploration_rate": 0.0,
+		"min_exploration_rate": 0.0,
+		"exploration_rate_decay_time": 0.0,
+		"learning_interpolator": "STEP",
+		"max_learning_rate": 0.0,
+		"min_learning_rate": 0.0,
+		"learning_rate_decay_time": 0.0
 	}
 	global.insert_default_keys(params, extra_params)
 	var character = char_type.instance()

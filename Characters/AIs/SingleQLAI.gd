@@ -14,6 +14,8 @@ var ep
 var learning_model
 var freezed_model
 
+var was_explore_action = false
+
 func _ready():
 	self.add_to_group("produce_analysis")
 
@@ -112,7 +114,9 @@ func _compute_value_from_q_values(next_state):
 func _compute_action_from_q_values(state):
 	var legal_actions = self.parent.get_legal_actions(state)
 	if randf() < self.get_epsilon():
+		self.was_explore_action = true
 		return global.choose_one(legal_actions)
+	self.was_explore_action = false
 	var q_values_list = []
 	for a in legal_actions:
 		var q_value = self._get_q_value(state, a, self.learning_model)
@@ -132,7 +136,9 @@ func _update_state(state, action, next_state, reward, last):
 	var features = self._get_features(state)
 	if last:
 		next_state = null
-	var exp_id = self.ep.push(features, reward, next_state)
+	var exp_id = -1
+	if not self.was_explore_action:
+		exp_id = self.ep.push(features, reward, next_state)
 
 	var next_val = self._compute_value_from_q_values(next_state)
 	var label = reward + self.discount * next_val
@@ -157,7 +163,7 @@ func _update_weights_experience(feat_sample, reward_sample, next_sample, pos_lis
 	var label_vec = []
 	var priorities = []
 
-	for i in range(feat_sample.size()):
+	for i in range(feat_sample.size() - 1, -1, -1):
 		var next_val = self._compute_value_from_q_values(next_sample[i])
 		var label = reward_sample[i] + self.discount * next_val
 		var q_val = self.learning_model.predict_one(feat_sample[i])[0]
